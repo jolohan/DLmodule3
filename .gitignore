@@ -6,6 +6,7 @@ __pycache__/
 *$py.class
 
 .idea
+run_and_activate_johan.sh
 
 # C extensions
 *.so

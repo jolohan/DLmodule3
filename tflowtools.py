@@ -211,8 +211,8 @@ def gen_random_line_cases(num_cases,dims,min_lines=1,min_opens=1,bias=1.0, mode=
     return [gen_case() for i in range(num_cases)]
 
 # ********** SEGMENT VECTORS **********
-# These have groups/segments/blobs of "on" bits interspersed in a background of "off" bits.  The key point is that we can
-# specify the number of segments, but the sizes are chosen randomly.
+# These have groups/segments/blobs of "on" bits interspersed in a background of "off" bits.  The key point is that we
+# can specify the number of segments, but the sizes are chosen randomly.
 
 def gen_segmented_vector(vectorsize,numsegs,onval=1,offval=0):
     if vectorsize >= 2*numsegs - 1:  # Need space for numsegs-1 gaps between the segments
@@ -231,7 +231,8 @@ def gen_segmented_vector(vectorsize,numsegs,onval=1,offval=0):
 def gen_random_pieces(chunk_size,num_pieces):
     if num_pieces == 1: return [chunk_size]
     else:
-        cut_points = list(NPR.choice(range(1,chunk_size),num_pieces-1,replace=False)) # the pts at which to cut up the chunk
+        cut_points = list(NPR.choice(range(1,chunk_size),num_pieces-1,replace=False))
+        # the pts at which to cut up the chunk
         lastloc = 0; pieces = []; cut_points.sort() # sort in ascending order
         cut_points.append(chunk_size)
         for pt in cut_points:
