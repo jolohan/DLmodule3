@@ -7,6 +7,7 @@ __pycache__/
 
 .idea
 run_and_activate_johan.sh
+mnist_extra
 
 # C extensions
 *.so
