@@ -4,8 +4,6 @@ import tensorflow as tf
 import numpy as np
 import tflowtools as TFT
 
-print("tutor1.py is running...")
-
 def tfex1(a,b):
     x = tf.constant(a)  # Scalar constant variables
     y = tf.constant(b)
@@ -158,7 +156,10 @@ def tfex8(size=5, steps=50, tvect=None,learning_rate = 0.5,showint=10):
     TFT.close_session(sess)
 
 
-print("tutor1.py is closed")
+if __name__ == '__main__':
+    print("tutor1.py is running...")
+    print(tfex8())
+    print("tutor1.py is closed")
 
 
 
