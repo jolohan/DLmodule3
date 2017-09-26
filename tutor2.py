@@ -19,6 +19,12 @@ class autoencoder():
         self.num_hiddens = nh
         self.build_neural_network(nh)
 
+    def __run__(self):
+        self.do_training()
+        self.do_testing()
+
+
+    #  This is the same as quickrun in tutorial # 1, but now it's a method, not a function.
     def build_neural_network(self,nh):
         ios = 2**nh  # ios = input- and output-layer size
         self.w1 = tf.Variable(np.random.uniform(-.1,.1,size=(ios,nh)),name='Weights-1')  # first weight array
@@ -35,7 +41,6 @@ class autoencoder():
         optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)
         self.trainer = optimizer.minimize(self.error,name='Backprop')
 
-    #  This is the same as quickrun in tutorial # 1, but now it's a method, not a function.
 
     def run_one_step(self,operators, grabbed_vars=None, dir='probeview',
                   session=None, feed_dict=None, step=1, show_interval=1):
@@ -45,7 +50,6 @@ class autoencoder():
         if show_interval and (step % show_interval == 0):
             TFT.show_results(results[1], grabbed_vars, dir)
         return results[0], results[1], sess
-
 
     def do_training(self,epochs=100,test_interval=10,show_interval=50):
         errors = []
@@ -72,6 +76,7 @@ class autoencoder():
                               ytitle='Avg Hidden-Node Vector Distance',title='')
 
 
+
     # This particular testing is ONLY called during training, so it always receives an open session.
     def do_testing(self,session=None,scatter=True):
         sess = session if session else self.current_session
@@ -88,6 +93,9 @@ class autoencoder():
             TFT.simple_scatter_plot(hidden_activations,radius=8)
         return hidden_activations
 
+
+
+
 # ********  Auxiliary functions for the autoencoder example *******
 
 def vector_distance(vect1, vect2):
@@ -102,7 +110,6 @@ def calc_avg_vect_dist(vectors):
     return 2 * sum / (n * (n - 1))
 
 #  A test of the autoencoder
-
 def autoex1(epochs=2000,num_bits=3,lrate=0.5,tint=25,showint=100):
     ann = autoencoder(nh=num_bits,lr=lrate)
     PLT.ion()
@@ -111,5 +118,10 @@ def autoex1(epochs=2000,num_bits=3,lrate=0.5,tint=25,showint=100):
     PLT.ioff()
     TFT.close_session(ann.current_session)
     return ann
+
+if __name__ == '__main__':
+    print("tutor2 is running")
+    autoex1(100)
+    print("tutor2 is closed")
 
 
