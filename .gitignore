@@ -15,6 +15,7 @@ mnist/
 run_and_activate_johan.sh
 mnist_extra
 probeview
+mnist_basics.py
 
 # C extensions
 *.so
