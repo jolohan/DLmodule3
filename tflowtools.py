@@ -291,7 +291,8 @@ def pp_matrix(m,style='{:.3f}'):
     rows, cols = m.shape
     for r in range(rows):
         print()  # skips to next line
-        for c in range(cols): print(style.format(m[r][c]), end=' ')
+        for c in range(cols):
+            print(style.format(m[r][c]), end=' ')
     print()
 
 # *******  DATA PLOTTING ROUTINES *********
