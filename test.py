@@ -1,6 +1,7 @@
 import mnist_basics as mb
 import tutor1, tutor2, tutor3
 import tflowtools as TFT
+from numpy import linalg as la
 
 def test():
 	print("Doing a quick test...")
@@ -75,7 +76,8 @@ class NNmodule():
 		# 5. Learning Rate
 		self.lr = float(network_dict['LearningRate'][0])
 
-		# 6. Initial Weight Range (SCALED???)
+		# 6. Initial Weight Range
+		self.weight_range = [int(i) for i in network_dict['InitialWeight']]
 
 		# 7. Data Source (data file + function needed to read it) OR (A function name along with parameters)
 		source = network_dict['DataSource']
@@ -90,6 +92,7 @@ class NNmodule():
 		else:
 			function_name = source[0]
 			params = source[1:]
+			print("PARMS: ", params)
 
 			if (function_name == "load_mnist"):
 				self.data_collector = (lambda : make_input_output_pairs(params))
@@ -133,17 +136,25 @@ class NNmodule():
 
 		# 17. Display Biases (list of the bias vectors to be visualized at the end of the run)
 
-
-def make_input_output_pairs(*args):
+# For the MNIST dataset:
+def make_input_output_pairs(parameters):
 	dataset = 0
-	for arg in args:
-		if (arg=="testing"):
+	digits = []
+	for p in parameters:
+		if (p=="testing"):
 			dataset = 1
-
-	images, labels = mb.load_mnist(dataset=("training" if not dataset else "testing"))
-	total = int(len(images)*0.2)
+		if (p.isdigit()):
+			digits.append(int(p))
+	output_size = 10
+	if (len(digits) == 0):
+		images, labels = mb.load_mnist(dataset=("training" if not dataset else "testing"))
+	else:
+		images, labels = mb.load_mnist(dataset=("training" if not dataset else "testing"), digits=digits)
+	total = int(len(images)*0.1)
 	images, labels = images[0:total], labels[0:total]
-	cases = [[mb.flatten_image(i), TFT.int_to_one_hot(int(l), 10)] for (i, l) in zip(images, labels)]
+
+	# Creating [input, output] - cases, with normalized, flattened images, and one-hot vectors as output:
+	cases = [[mb.flatten_image(i)/la.norm(i), TFT.int_to_one_hot(int(l[0]), output_size)] for (i, l) in zip(images, labels)]
 	print("Total cases: ", len(cases))
 	return cases
 
