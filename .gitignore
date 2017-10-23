@@ -9,6 +9,7 @@ __pycache__/
 probeview/
 plots/
 netsaver/
+mnist/
 
 .idea
 run_and_activate_johan.sh
