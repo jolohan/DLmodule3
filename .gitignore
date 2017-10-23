@@ -10,6 +10,7 @@ probeview/
 plots/
 netsaver/
 mnist/
+Mnist/
 
 .idea
 run_and_activate_johan.sh
