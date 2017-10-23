@@ -11,7 +11,7 @@ def test():
 
 
 
-# Should hold then ANN's created by the config file:
+# Should hold the ANN's created by the config file:
 class NNmodule():
 
 	def __init__(self):
@@ -135,9 +135,10 @@ class NNmodule():
 			self.map_dendos = [int(layer) for layer in network_dict['MapDendo']]
 
 		# 16. Display Weights (list of the weight arrays to be visualized at the end of the run)
-
+		self.display_weights = [int(layer) for layer in network_dict['DisplayWeights']]
 
 		# 17. Display Biases (list of the bias vectors to be visualized at the end of the run)
+		self.display_biases = [int(layer) for layer in network_dict['DisplayBias']]
 
 # For the MNIST dataset:
 def make_input_output_pairs(parameters, loss_function):

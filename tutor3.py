@@ -138,7 +138,7 @@ class Gann():
             if epoch == 0:
                 epoch = self.global_training_step
             print('Epoch: ', epoch)
-            #print("Error: ", testres)
+            print("Error: ", testres)
             #print('%s Set Error = %f ' % (msg, testres))
         else:
             print('%s Set Correct Classifications = %f %%' % (msg, 100*(testres/len(cases))))
