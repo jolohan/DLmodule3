@@ -26,7 +26,8 @@ class NNmodule():
 		self.case_manager = tutor3.Caseman(self.case_generator, self.vfrac, self.tfrac)
 
 		# IF not softmax, need apply output activation self:
-		self.ann = tutor3.Gann(self.sizes, self.case_manager, lrate=self.lr, showint=100, mbs=self.batch_size, vint=100, softmax=(self.activation == 'softmax'))
+		self.ann = tutor3.Gann(self.sizes, self.case_manager, lrate=self.lr, showint=None, mbs=self.batch_size, vint=100,
+			softmax=(self.activation == 'softmax'), hidden_activation=self.hidden_activation)
 
 		# Run:
 		self.run()
@@ -34,7 +35,7 @@ class NNmodule():
 
 	def run(self):
 		self.ann.gen_probe(0,'wgt',('hist','avg'))  # Plot a histogram and avg of the incoming weights to module 0.
-		self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
+		#self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
 		self.ann.add_grabvar(0,'wgt') # Add a grabvar (to be displayed in its own matplotlib window).
 		self.ann.run(self.epochs, bestk=True)
 		#self.ann.runmore(self.epochs, bestk=False)
@@ -63,10 +64,10 @@ class NNmodule():
 			self.sizes.append(int(s))
 
 		# 2. Hidden Activation Function
-		self.hidden_activation = network_dict['HiddenActivation']
+		self.hidden_activation = network_dict['HiddenActivation'][0]
 
 		# 3. Output Activation Function
-		self.activation = network_dict['OutputActivation']
+		self.activation = network_dict['OutputActivation'][0]
 
 		# 4. Cost Function (Loss)
 		self.cost = 0

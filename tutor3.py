@@ -9,7 +9,7 @@ import tflowtools as TFT
 
 class Gann():
 
-    def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,softmax=False):
+    def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,softmax=False,hidden_activation="relu"):
         self.learning_rate = lrate
         self.layer_sizes = dims # Sizes of each layer of neurons
         self.show_interval = showint # Frequency of showing grabbed variables
@@ -22,6 +22,7 @@ class Gann():
         self.caseman = cman
         self.softmax_outputs = softmax
         self.modules = []
+        self.hidden_activation = hidden_activation
         self.build()
 
     # Probed variables are to be displayed in the Tensorboard.
@@ -46,8 +47,12 @@ class Gann():
         invar = self.input; insize = num_inputs
         # Build all of the modules
         for i,outsize in enumerate(self.layer_sizes[1:]):
-            gmod = Gannmodule(self,i,invar,insize,outsize)
-            invar = gmod.output; insize = gmod.outsize
+            if (i < len(self.layer_sizes) - 2):
+                gmod = Gannmodule(self,i,invar,insize,outsize,self.hidden_activation)
+                invar = gmod.output; insize = gmod.outsize
+            else:
+                gmod = Gannmodule(self,i,invar,insize,outsize,"linear")
+                invar = gmod.output; insize = gmod.outsize
         self.output = gmod.output # Output of last module is output of whole network
         if self.softmax_outputs: self.output = tf.nn.softmax(self.output)
         self.target = tf.placeholder(tf.float64,shape=(None,gmod.outsize),name='Target')
@@ -97,6 +102,7 @@ class Gann():
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                            feed_dict=feeder,  show_interval=None)
         if bestk is None:
+            print('Epoch: ', self.global_training_step)
             print('%s Set Error = %f ' % (msg, testres))
         else:
             print('%s Set Correct Classifications = %f %%' % (msg, 100*(testres/len(cases))))
@@ -122,7 +128,9 @@ class Gann():
         self.do_training(session,self.caseman.get_training_cases(),epochs,continued=continued)
 
     def testing_session(self,sess,bestk=None):
+        print("\n---Testing Session---\n")
         cases = self.caseman.get_testing_cases()
+        print("Cases: ", len(cases))
         if len(cases) > 0:
             self.do_testing(sess,cases,msg='Final Testing',bestk=bestk)
 
@@ -215,13 +223,14 @@ class Gann():
 # A general ann module = a layer of neurons (the output) plus its incoming weights and biases.
 class Gannmodule():
 
-    def __init__(self,ann,index,invariable,insize,outsize):
+    def __init__(self,ann,index,invariable,insize,outsize,activation):
         self.ann = ann
         self.insize=insize  # Number of neurons feeding into this module
         self.outsize=outsize # Number of neurons in this module
         self.input = invariable  # Either the gann's input variable or the upstream module's output
         self.index = index
         self.name = "Module-"+str(self.index)
+        self.activation = activation
         self.build()
 
     def build(self):
@@ -230,7 +239,18 @@ class Gannmodule():
                                    name=mona+'-wgt',trainable=True) # True = default for trainable anyway
         self.biases = tf.Variable(np.random.uniform(-.1, .1, size=n),
                                   name=mona+'-bias', trainable=True)  # First bias vector
-        self.output = tf.nn.relu(tf.matmul(self.input,self.weights)+self.biases,name=mona+'-out')
+        print(self.activation)
+        if (self.activation == "relu"):
+            print("RELU Layer")
+            self.output = tf.nn.relu(tf.matmul(self.input,self.weights)+self.biases,name=mona+'-out')
+        elif (self.activation == "sigmoid"):
+            print("SIGMOID Layer")
+            self.output = tf.nn.sigmoid(tf.matmul(self.input,self.weights)+self.biases,name=mona+'-out')
+        elif (self.activation == "linear"):
+            print("LINEAR Layer")
+            self.output = tf.matmul(self.input,self.weights)+self.biases
+
+
         self.ann.add_module(self)
 
     def getvar(self,type):  # type = (in,out,wgt,bias)

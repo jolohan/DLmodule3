@@ -1,6 +1,6 @@
-NetSize 16 8 16
+NetSize 16 16
 HiddenActivation relu
-OutputActivation softmax
+OutputActivation softmax1
 LossFunc crossentropy
 LearningRate 0.01
 InitialWeight -1 1
