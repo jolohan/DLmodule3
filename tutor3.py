@@ -11,6 +11,7 @@ import random as rand
 class Gann():
 
     def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,activation="softmax", loss_func="mse", hidden_activation="relu"):
+        print("initiate config variables")
         self.learning_rate = lrate
         self.layer_sizes = dims # Sizes of each layer of neurons
         self.show_interval = showint # Frequency of showing grabbed variables
@@ -88,9 +89,11 @@ class Gann():
         self.trainer = optimizer.minimize(self.error,name='Backprop')
 
     def do_training(self,sess,cases,epochs=100,continued=False):
-        if not(continued): self.error_history = []
+        if not(continued):
+            self.error_history = []
         for i in range(epochs):
-            error = 0; step = self.global_training_step + i
+            error = 0
+            step = self.global_training_step + i
             gvars = [self.error] + self.grabvars
             mbs = self.minibatch_size; ncases = len(cases); nmb = math.ceil(ncases/mbs)
             for cstart in range(0,ncases,mbs):  # Loop through cases, one minibatch at a time.
@@ -104,6 +107,7 @@ class Gann():
             self.error_history.append((step, error/nmb))
             self.consider_validation_testing(step,sess)
         self.global_training_step += epochs
+        print("global_training_step: " + str(self.global_training_step) + "  epochs: " + str(epochs))
         TFT.plot_training_history(self.error_history,self.validation_history,xtitle="Epoch",ytitle="Error",
                                   title="",fig=not(continued))
 
@@ -111,7 +115,7 @@ class Gann():
     # gen_match_counter error function. Otherwise, when
     # bestk=None, the standard MSE error function is used for testing.
 
-    def do_testing(self,sess,cases,msg='Testing',bestk=None):
+    def do_testing(self, sess, cases, msg='Testing', bestk=None, epoch=0):
         inputs = [c[0] for c in cases]; targets = [c[1] for c in cases]
         feeder = {self.input: inputs, self.target: targets}
         self.test_func = self.error
@@ -120,7 +124,9 @@ class Gann():
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                            feed_dict=feeder,  show_interval=None)
         if bestk is None:
-            print('Epoch: ', self.global_training_step)
+            if epoch == 0:
+                epoch = self.global_training_step
+            print('Epoch: ', epoch)
             #print("Error: ", testres)
             #print('%s Set Error = %f ' % (msg, testres))
         else:
@@ -157,7 +163,7 @@ class Gann():
         if self.validation_interval and (epoch % self.validation_interval == 0):
             cases = self.caseman.get_validation_cases()
             if len(cases) > 0:
-                error = self.do_testing(sess,cases,msg='Validation Testing')
+                error = self.do_testing(sess,cases,msg='Validation Testing',epoch=epoch)
                 self.validation_history.append((epoch,error))
 
     # Do testing (i.e. calc error without learning) on the training set.
