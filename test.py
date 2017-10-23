@@ -22,7 +22,7 @@ class NNmodule():
 		# Datahandler:
 		nbits = 4
 		size = 2**nbits
-		self.case_generator = (lambda : TFT.gen_all_parity_cases(2**nbits))
+		self.case_generator = self.data_collector
 
 		#print(self.data_collector)
 		self.case_manager = tutor3.Caseman(self.case_generator, self.vfrac, self.tfrac)
@@ -85,11 +85,16 @@ class NNmodule():
 		file = ("." in file_or_function)
 
 		if (file):
-			self.param = file_or_function
+			function_name = source[1]
+			if (function_name == ""):
+				self.data_collector = (lambda : TFT.gen_all_parity_cases(2**nbits))
 		else:
-			self.param = source[1]
+			function_name = source[0]
+			param = source[1:]
 
-		self.data_collector = make_input_output_pairs
+			if (function_name == "load_mnist"):
+				self.data_collector = (lambda : mb.load_mnist(param[0]))
+
 
 		# 8. Case Fraction (Std: 1.0, how much of the original dataset to use)
 		self.cfrac = float(network_dict['CaseFrac'][0])
@@ -123,11 +128,9 @@ class NNmodule():
 		# 17. Display Biases (list of the bias vectors to be visualized at the end of the run)
 
 
-def make_input_output_pairs():
-	training = mb.load_mnist()
-	img, label = training
-	total = int(len(img)*0.5)
-	img, label = img[0:total], label[0:total]
+def make_input_output_pairs(img, labels):
+	total = int(len(img)*cfrac)
+	img, label = img[0:total], labels[0:total]
 	cases = [[i, l] for (i, l) in zip(img, label)]
 	print("Total cases: ", len(cases))
 	return cases
