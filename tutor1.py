@@ -156,12 +156,6 @@ def tfex8(size=5, steps=50, tvect=None,learning_rate = 0.5,showint=10):
     TFT.close_session(sess)
 
 
-if __name__ == '__main__':
-    print("tutor1.py is running...")
-    print(tfex8())
-    print("tutor1.py is closed")
-
-
 
 
 
