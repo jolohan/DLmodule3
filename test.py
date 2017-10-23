@@ -28,7 +28,7 @@ class NNmodule():
 		self.case_manager = tutor3.Caseman(self.case_generator, self.vfrac, self.tfrac)
 
 		# IF not softmax, need apply output activation self:
-		self.ann = tutor3.Gann([size, 8, 2], self.case_manager, lrate=self.lr, showint=100, mbs=self.batch_size, vint=100, softmax=(self.activation == 'softmax'))
+		self.ann = tutor3.Gann(self.sizes, self.case_manager, lrate=self.lr, showint=100, mbs=self.batch_size, vint=100, softmax=(self.activation == 'softmax'))
 
 		# Run:
 		self.run()
@@ -86,14 +86,14 @@ class NNmodule():
 
 		if (file):
 			function_name = source[1]
-			if (function_name == ""):
+			if (function_name == "gen_all_parity_cases"):
 				self.data_collector = (lambda : TFT.gen_all_parity_cases(2**nbits))
 		else:
 			function_name = source[0]
-			param = source[1:]
+			params = source[1:]
 
 			if (function_name == "load_mnist"):
-				self.data_collector = (lambda : mb.load_mnist(param[0]))
+				self.data_collector = (lambda : make_input_output_pairs(params))
 
 
 		# 8. Case Fraction (Std: 1.0, how much of the original dataset to use)
@@ -128,10 +128,16 @@ class NNmodule():
 		# 17. Display Biases (list of the bias vectors to be visualized at the end of the run)
 
 
-def make_input_output_pairs(img, labels):
-	total = int(len(img)*cfrac)
-	img, label = img[0:total], labels[0:total]
-	cases = [[i, l] for (i, l) in zip(img, label)]
+def make_input_output_pairs(*args):
+	dataset = 0
+	for arg in args:
+		if (arg=="testing"):
+			dataset = 1
+
+	images, labels = mb.load_mnist(dataset=("training" if not dataset else "testing"))
+	total = int(len(images)*1.0)
+	images, labels = images[0:total], labels[0:total]
+	cases = [[mb.flatten_image(i), l] for (i, l) in zip(images, labels)]
 	print("Total cases: ", len(cases))
 	return cases
 

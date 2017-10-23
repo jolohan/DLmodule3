@@ -1,4 +1,4 @@
-NetSize 10 20 50 20 10
+NetSize 784 200 10
 HiddenActivation relu
 OutputActivation softmax
 LossFunc crossentropy
