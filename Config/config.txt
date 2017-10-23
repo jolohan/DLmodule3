@@ -1,0 +1,17 @@
+NetSize 10 20 50 20 10
+HiddenActivation relu
+OutputActivation softmax
+LossFunc crossentropy
+LearningRate 0.01
+InitialWeight -1 1
+DataSource load_mnist training
+CaseFrac 0.5
+ValFrac 0.1
+TestFrac 0.1
+BatchSize 64
+MapBatchSize 0
+Epochs 5000
+MapLayers 1 2
+MapDendo 1 2
+DisplayWeights 1 2 3
+DisplayBias 1 2 3
