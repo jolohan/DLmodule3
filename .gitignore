@@ -5,6 +5,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Folders
+probeview/
+plots/
+netsaver/
+Config/
+
 .idea
 run_and_activate_johan.sh
 mnist_extra
