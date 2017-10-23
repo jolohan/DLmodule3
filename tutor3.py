@@ -3,13 +3,14 @@ import numpy as np
 import math
 import matplotlib.pyplot as PLT
 import tflowtools as TFT
+import random as rand
 
 # ******* A General Artificial Neural Network ********
 # This is the original GANN, which has been improved in the file gann.py
 
 class Gann():
 
-    def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,softmax=False,hidden_activation="relu"):
+    def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,activation="softmax", loss_func="mse", hidden_activation="relu"):
         self.learning_rate = lrate
         self.layer_sizes = dims # Sizes of each layer of neurons
         self.show_interval = showint # Frequency of showing grabbed variables
@@ -20,7 +21,8 @@ class Gann():
         self.validation_interval = vint
         self.validation_history = []
         self.caseman = cman
-        self.softmax_outputs = softmax
+        self.activation = activation
+        self.loss_func = loss_func
         self.modules = []
         self.hidden_activation = hidden_activation
         self.build()
@@ -54,7 +56,17 @@ class Gann():
                 gmod = Gannmodule(self,i,invar,insize,outsize,"linear")
                 invar = gmod.output; insize = gmod.outsize
         self.output = gmod.output # Output of last module is output of whole network
-        if self.softmax_outputs: self.output = tf.nn.softmax(self.output)
+        if (self.activation == "softmax"):
+            self.output = tf.nn.softmax(self.output)
+        elif (self.activation == "log_softmax"):
+            self.output = self.output
+        elif (self.activation == "sigmoid"):
+            self.output = tf.nn.sigmoid(self.output)
+        elif (self.activation == "log_sigmoid"):
+            self.output = self.output
+        elif (self.activation == "linear"):
+            self.output = self.output
+
         self.target = tf.placeholder(tf.float64,shape=(None,gmod.outsize),name='Target')
         self.configure_learning()
 
@@ -63,7 +75,13 @@ class Gann():
     # of the weight array.
 
     def configure_learning(self):
-        self.error = tf.reduce_mean(tf.square(self.target - self.output),name='MSE')
+        if (self.loss_func == "mse"):
+            self.error = tf.reduce_mean(tf.square(self.target - self.output),name='MSE')
+        elif (self.loss_func == "softmax_cross_entropy"):
+            self.error = tf.nn.softmax_cross_entropy_with_logits(labels=self.target, logits=self.output, name='SoftmaxCrossEntropy')
+        elif (self.loss_func == "sigmoid_cross_entropy"):
+            self.error = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.target, logits=self.output, name='SigmoidCrossEntropy')
+        print("ERROR: ", self.error)
         self.predictor = self.output  # Simple prediction runs will request the value of output neurons
         # Defining the training operator
         optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)
@@ -103,7 +121,8 @@ class Gann():
                                            feed_dict=feeder,  show_interval=None)
         if bestk is None:
             print('Epoch: ', self.global_training_step)
-            print('%s Set Error = %f ' % (msg, testres))
+            #print("Error: ", testres)
+            #print('%s Set Error = %f ' % (msg, testres))
         else:
             print('%s Set Correct Classifications = %f %%' % (msg, 100*(testres/len(cases))))
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
@@ -287,8 +306,12 @@ class Caseman():
         self.generate_cases()
         self.organize_cases()
 
+    # Dealing with both shuffle and case-fraction her, so not the same cases are removed everytime we restart...
     def generate_cases(self):
         self.cases = self.casefunc()  # Run the case generator.  Case = [input-vector, target-vector]
+        rand.shuffle(self.cases)
+        total_cases = int(self.case_fraction*len(self.cases))
+        self.cases = self.cases[:total_cases]
 
     def organize_cases(self):
         ca = np.array(self.cases)

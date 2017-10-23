@@ -1,16 +1,16 @@
 NetSize 784 10
 HiddenActivation relu
-OutputActivation softmax1
-LossFunc crossentropy
+OutputActivation log_softmax
+LossFunc softmax_cross_entropy
 LearningRate 0.01
 InitialWeight -1 1
 DataSource load_mnist training
-CaseFrac 0.5
+CaseFrac 1.0
 ValFrac 0.1
 TestFrac 0.1
 BatchSize 64
 MapBatchSize 0
-Epochs 1000
+Epochs 20
 MapLayers 1 2
 MapDendo 1 2
 DisplayWeights 1 2 3

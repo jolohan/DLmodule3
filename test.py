@@ -16,31 +16,38 @@ class NNmodule():
 
 	def __init__(self):
 
+		# Load config file:
 		self.filename = "Config/config.txt"
 		self.load_config()
 
-		#tutor3.autoex(epochs=10000,nbits=4,lrate=0.03,showint=100,mbs=None,vfrac=0.1,tfrac=0.1,vint=100,sm=False,bestk=None)
-		# Datahandler:
+		# Datahandler (sent to CASEMAN):
 		self.case_generator = self.data_collector
 
-		#print(self.data_collector)
-		self.case_manager = tutor3.Caseman(self.case_generator, self.vfrac, self.tfrac)
+		# CASEMAN itself:
+		self.case_manager = tutor3.Caseman(self.case_generator, self.vfrac, self.tfrac, self.cfrac)
 
-		# IF not softmax, need apply output activation self:
-		self.ann = tutor3.Gann(self.sizes, self.case_manager, lrate=self.lr, showint=None, mbs=self.batch_size, vint=100,
-			softmax=(self.activation == 'softmax'), hidden_activation=self.hidden_activation)
+		# Artificial Neural Network:
+		self.ann = tutor3.Gann(self.sizes, self.case_manager, lrate=self.lr, showint=None, mbs=self.batch_size, vint=1,
+			activation=self.activation, loss_func=self.loss_func, hidden_activation=self.hidden_activation)
 
-		# Run:
+		# Run the network:
 		self.run()
 
 
 	def run(self):
 		self.ann.gen_probe(0,'wgt',('hist','avg'))  # Plot a histogram and avg of the incoming weights to module 0.
-		#self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
+		if (len(self.sizes) > 2):
+			self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
 		self.ann.add_grabvar(0,'wgt') # Add a grabvar (to be displayed in its own matplotlib window).
 		self.ann.run(self.epochs, bestk=True)
-		#self.ann.runmore(self.epochs, bestk=False)
-		string = input("Done? ")
+		string = input("Do you want to run more epochs? [0, n]\n: ")
+		try:
+			more_epochs = int(string)
+			if (more_epochs > 0):
+				self.ann.runmore(more_epochs, bestk=True)
+		except:
+			print("Shutting down...")
+		print("Shutting down...")
 
 	def load_config(self):
 
@@ -71,7 +78,7 @@ class NNmodule():
 		self.activation = network_dict['OutputActivation'][0]
 
 		# 4. Cost Function (Loss)
-		self.cost = 0
+		self.loss_func = network_dict['LossFunc'][0]
 
 		# 5. Learning Rate
 		self.lr = float(network_dict['LearningRate'][0])
@@ -88,7 +95,7 @@ class NNmodule():
 		if (file):
 			function_name = source[1]
 			if (function_name == "gen_all_parity_cases"):
-				self.data_collector = (lambda : TFT.gen_all_parity_cases(2**nbits))
+				self.data_collector = (lambda : TFT.gen_all_parity_cases(nbits))
 		else:
 			function_name = source[0]
 			params = source[1:]
@@ -98,10 +105,13 @@ class NNmodule():
 				self.data_collector = (lambda : make_input_output_pairs(params))
 
 			elif (function_name == "gen_all_parity_cases"):
-				self.data_collector = (lambda : TFT.gen_all_parity_cases(2**int(params[0])))
+				self.data_collector = (lambda : TFT.gen_all_parity_cases(int(params[0])))
 
 			elif (function_name == "gen_all_one_hot_cases"):
 				self.data_collector = (lambda : TFT.gen_all_one_hot_cases(2**int(params[0])))
+
+			elif (function_name == "gen_vector_count_cases"):
+				self.data_collector = (lambda : TFT.gen_vector_count_cases(int(params[0])))
 
 
 
@@ -148,14 +158,14 @@ def make_input_output_pairs(parameters):
 	output_size = 10
 	if (len(digits) == 0):
 		images, labels = mb.load_mnist(dataset=("training" if not dataset else "testing"))
+
+	# If specified which images to get: (i.e. [1, 4, 6])
 	else:
 		images, labels = mb.load_mnist(dataset=("training" if not dataset else "testing"), digits=digits)
-	total = int(len(images)*0.1)
-	images, labels = images[0:total], labels[0:total]
 
 	# Creating [input, output] - cases, with normalized, flattened images, and one-hot vectors as output:
 	cases = [[mb.flatten_image(i)/la.norm(i), TFT.int_to_one_hot(int(l[0]), output_size)] for (i, l) in zip(images, labels)]
-	print("Total cases: ", len(cases))
+	print("Total cases collected: ", len(cases))
 	return cases
 
 net = NNmodule()
