@@ -20,8 +20,6 @@ class NNmodule():
 
 		#tutor3.autoex(epochs=10000,nbits=4,lrate=0.03,showint=100,mbs=None,vfrac=0.1,tfrac=0.1,vint=100,sm=False,bestk=None)
 		# Datahandler:
-		nbits = 4
-		size = 2**nbits
 		self.case_generator = self.data_collector
 
 		#print(self.data_collector)
@@ -95,6 +93,13 @@ class NNmodule():
 			if (function_name == "load_mnist"):
 				self.data_collector = (lambda : make_input_output_pairs(params))
 
+			elif (function_name == "gen_all_parity_cases"):
+				self.data_collector = (lambda : TFT.gen_all_parity_cases(2**int(params[0])))
+
+			elif (function_name == "gen_all_one_hot_cases"):
+				self.data_collector = (lambda : TFT.gen_all_one_hot_cases(2**int(params[0])))
+
+
 
 		# 8. Case Fraction (Std: 1.0, how much of the original dataset to use)
 		self.cfrac = float(network_dict['CaseFrac'][0])
@@ -135,9 +140,9 @@ def make_input_output_pairs(*args):
 			dataset = 1
 
 	images, labels = mb.load_mnist(dataset=("training" if not dataset else "testing"))
-	total = int(len(images)*1.0)
+	total = int(len(images)*0.2)
 	images, labels = images[0:total], labels[0:total]
-	cases = [[mb.flatten_image(i), l] for (i, l) in zip(images, labels)]
+	cases = [[mb.flatten_image(i), TFT.int_to_one_hot(int(l), 10)] for (i, l) in zip(images, labels)]
 	print("Total cases: ", len(cases))
 	return cases
 

@@ -1,10 +1,10 @@
-NetSize 784 200 10
+NetSize 16 8 16
 HiddenActivation relu
 OutputActivation softmax
 LossFunc crossentropy
 LearningRate 0.01
 InitialWeight -1 1
-DataSource load_mnist training
+DataSource gen_all_one_hot_cases 4
 CaseFrac 0.5
 ValFrac 0.1
 TestFrac 0.1
