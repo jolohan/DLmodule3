@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as PLT
 import tflowtools as TFT
 import random as rand
+import os
 
 # ******* A General Artificial Neural Network ********
 # This is the original GANN, which has been improved in the file gann.py
@@ -114,7 +115,6 @@ class Gann():
             self.error_history.append((step, error/nmb))
             self.consider_validation_testing(step,sess)
         self.global_training_step += epochs
-        print("global_training_step: " + str(self.global_training_step) + "  epochs: " + str(epochs))
         TFT.plot_training_history(self.error_history,self.validation_history,xtitle="Epoch",ytitle="Error",
                                   title="",fig=not(continued))
 
@@ -239,6 +239,11 @@ class Gann():
             vars = [m.getvar('wgt'), m.getvar('bias')]
             state_vars = state_vars + vars
         self.state_saver = tf.train.Saver(state_vars)
+        directory = os.path.dirname(spath)
+        try:
+            os.stat(directory)
+        except:
+            os.mkdir(directory)
         self.saved_state_path = self.state_saver.save(session, spath, global_step=step)
 
     def reopen_current_session(self):
