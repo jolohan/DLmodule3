@@ -18,6 +18,7 @@ class NNmodule():
 
 		# Load config file:
 		self.filename = "Config/seg_count_config.txt"
+		self.filename = "Config/yeast_config.txt"
 		self.load_config()
 
 		# Datahandler (sent to CASEMAN):
@@ -98,9 +99,9 @@ class NNmodule():
 		file = ("." in file_or_function)
 
 		if (file):
+			filename = file_or_function
 			function_name = source[1]
-			if (function_name == "gen_all_parity_cases"):
-				self.data_collector = (lambda : TFT.gen_all_parity_cases(nbits))
+			self.data_collector = (lambda : manage_data_loaders(function_name, [filename], self.loss_func))
 		else:
 			function_name = source[0]
 			params = source[1:]
@@ -140,7 +141,7 @@ class NNmodule():
 		# 17. Display Biases (list of the bias vectors to be visualized at the end of the run)
 
 # For the MNIST dataset:
-def make_input_output_pairs(parameters, loss_function):
+def mnist(parameters, loss_function):
 	dataset = 0
 	digits = []
 	for p in parameters:
@@ -166,11 +167,69 @@ def make_input_output_pairs(parameters, loss_function):
 	print("Total cases collected: ", len(cases))
 	return cases
 
+# For loading the UC Irvine datasets:
+def dataset_loader(filename, loss_function):
+	print(filename)
+	with open(filename, "r") as file:
+		feature_vectors = []
+		labels = []
+		splitter = ";"
+		for line in file:
+			if (len(line) > 0):
+				if (splitter not in line):
+					splitter = ","
+				split_string = line.split(splitter)
+				labels.append(int(split_string[-1]))
+				feature_vectors.append([float(i) for i in split_string[:len(split_string) - 1]])
+	print("Nof features: ", len(feature_vectors[0]))
+	print("Nof examples: ", len(feature_vectors))
+	print(max(labels), min(labels))
+
+	# Making one-hot-labels:
+	one_hot_labels = [TFT.int_to_one_hot(l, max(labels) + 1)[min(labels):] for l in labels]
+	# Normalizing features in the space [0, 1]:
+	normalized_feature_vectors = normalize_features(feature_vectors)
+
+	# Creating the case-set:
+	cases = [[f, l] for (f, l) in zip(normalized_feature_vectors, one_hot_labels)]
+	return cases
+
+def normalize_features(vector):
+	nof_features = len(vector[0])
+	f_max = []
+	f_min = []
+	for i in range(nof_features):
+		for j in range(len(vector)):
+			cell = vector[j][i]
+			if (len(f_max) <= i):
+				f_max.append(cell)
+			else:
+				if (cell > f_max[i]):
+					f_max[i] = cell
+			if (len(f_min) <= i):
+				f_min.append(cell)
+			else:
+				if (cell < f_min[i]):
+					f_min[i] = cell
+
+	print(f_min)
+	print(f_max)
+
+	normalized_features = []
+	for c, case in enumerate(vector):
+		normalized_features.append([(f_c_j-f_min[j])/(f_max[j]-f_min[j]) if f_max[j]-f_min[j] != 0 else 1 for j, f_c_j in enumerate(case)])
+
+	#print(normalized_features[0:10])
+	return normalized_features
+
 
 def manage_data_loaders(function_name, params, loss_function):
 	one_hot = False
 	if (function_name == "load_mnist"):
-		cases = make_input_output_pairs(params, self.loss_func)
+		cases = mnist(params, self.loss_func)
+
+	elif (function_name == "dataset_loader"):
+		cases = dataset_loader(params[0], loss_function)
 
 	elif (function_name == "gen_all_parity_cases"):
 		if (len(params) == 1):
@@ -202,6 +261,7 @@ def manage_data_loaders(function_name, params, loss_function):
 		cases = TFT.gen_segmented_vector_cases(nbits, nof_cases, min_seg, max_seg)
 
 
+	# Sparse need integers as labels, not vectors:
 	if (loss_function == "sparse_softmax_cross_entropy"):
 		bit_cases = []
 		for case in cases:
@@ -212,12 +272,12 @@ def manage_data_loaders(function_name, params, loss_function):
 					bit_cases.append([case[0], case[1][1]])
 			else:
 				for i, b in enumerate(case[1]):
-					print(case[1])
 					if (b):
 						bit_cases.append([case[0], i])
 						break
 		cases = bit_cases
-	print(cases[0:])
+
+	print(cases[0:10])
 	return cases
 
 
