@@ -17,7 +17,7 @@ class NNmodule():
 	def __init__(self):
 
 		# Load config file:
-		self.filename = "Config/config.txt"
+		self.filename = "Config/seg_count_config.txt"
 		self.load_config()
 
 		# Datahandler (sent to CASEMAN):
@@ -28,7 +28,7 @@ class NNmodule():
 
 		# Artificial Neural Network:
 		self.ann = tutor3.Gann(self.sizes, self.case_manager, lrate=self.lr, showint=None, mbs=self.batch_size, vint=1,
-			activation=self.activation, loss_func=self.loss_func, hidden_activation=self.hidden_activation)
+			activation=self.activation, loss_func=self.loss_func, hidden_activation=self.hidden_activation, init_weights=self.weight_range)
 
 		# Run the network:
 		self.run()
@@ -40,13 +40,18 @@ class NNmodule():
 			self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
 		self.ann.add_grabvar(0,'wgt') # Add a grabvar (to be displayed in its own matplotlib window).
 		self.ann.run(self.epochs, bestk=True)
-		string = input("Do you want to run more epochs? [0, n]\n: ")
-		try:
-			more_epochs = int(string)
-			if (more_epochs > 0):
-				self.ann.runmore(more_epochs, bestk=True)
-		except:
-			print("Shutting down...")
+		done = False
+		while not done:
+			string = input("Do you want to run more epochs? [0, n]\n: ")
+			try:
+				more_epochs = int(string)
+				if (more_epochs > 0):
+					self.ann.runmore(more_epochs, bestk=True)
+				else:
+					done = True
+			except:
+				done = True
+				print("Shutting down...")
 		print("Shutting down...")
 
 	def load_config(self):
@@ -84,7 +89,7 @@ class NNmodule():
 		self.lr = float(network_dict['LearningRate'][0])
 
 		# 6. Initial Weight Range
-		self.weight_range = [int(i) for i in network_dict['InitialWeight']]
+		self.weight_range = [float(i) for i in network_dict['InitialWeight']]
 
 		# 7. Data Source (data file + function needed to read it) OR (A function name along with parameters)
 		source = network_dict['DataSource']
@@ -99,19 +104,7 @@ class NNmodule():
 		else:
 			function_name = source[0]
 			params = source[1:]
-			print("PARMS: ", params)
-
-			if (function_name == "load_mnist"):
-				self.data_collector = (lambda : make_input_output_pairs(params))
-
-			elif (function_name == "gen_all_parity_cases"):
-				self.data_collector = (lambda : TFT.gen_all_parity_cases(int(params[0])))
-
-			elif (function_name == "gen_all_one_hot_cases"):
-				self.data_collector = (lambda : TFT.gen_all_one_hot_cases(2**int(params[0])))
-
-			elif (function_name == "gen_vector_count_cases"):
-				self.data_collector = (lambda : TFT.gen_vector_count_cases(int(params[0])))
+			self.data_collector = (lambda : manage_data_loaders(function_name, params, self.loss_func))
 
 
 
@@ -147,7 +140,7 @@ class NNmodule():
 		# 17. Display Biases (list of the bias vectors to be visualized at the end of the run)
 
 # For the MNIST dataset:
-def make_input_output_pairs(parameters):
+def make_input_output_pairs(parameters, loss_function):
 	dataset = 0
 	digits = []
 	for p in parameters:
@@ -163,9 +156,71 @@ def make_input_output_pairs(parameters):
 	else:
 		images, labels = mb.load_mnist(dataset=("training" if not dataset else "testing"), digits=digits)
 
+	# Creating [input, output] - cases, with normalized, flattened images, and int label vectors as output (sparse need integers, not vectors):
+	if (loss_function == "sparse_softmax_cross_entropy"):
+		cases = [[mb.flatten_image(i)/la.norm(i), int(l[0])] for (i, l) in zip(images, labels)]
+		print(cases[0])
 	# Creating [input, output] - cases, with normalized, flattened images, and one-hot vectors as output:
-	cases = [[mb.flatten_image(i)/la.norm(i), TFT.int_to_one_hot(int(l[0]), output_size)] for (i, l) in zip(images, labels)]
+	else:
+		cases = [[mb.flatten_image(i)/la.norm(i), TFT.int_to_one_hot(int(l[0]), output_size)] for (i, l) in zip(images, labels)]
 	print("Total cases collected: ", len(cases))
 	return cases
+
+
+def manage_data_loaders(function_name, params, loss_function):
+	one_hot = False
+	if (function_name == "load_mnist"):
+		cases = make_input_output_pairs(params, self.loss_func)
+
+	elif (function_name == "gen_all_parity_cases"):
+		if (len(params) == 1):
+			cases = TFT.gen_all_parity_cases(int(params[0]))
+		else:
+			cases = TFT.gen_all_parity_cases(int(params[0]), bool(params[1]))
+
+	elif (function_name == "gen_all_one_hot_cases"):
+		one_hot = True
+		cases = TFT.gen_all_one_hot_cases(2**int(params[0]))
+
+	elif (function_name == "gen_vector_count_cases"):
+		one_hot = True
+		nof_cases = int(params[0])
+		length = int(params[1])
+		cases = TFT.gen_vector_count_cases(nof_cases, length)
+
+	elif (function_name == "gen_segmented_vector_cases"):
+		one_hot = True
+		# ASSUMING all these parameters are given:
+		try:
+			nbits = int(params[0])
+			nof_cases = int(params[1])
+			min_seg = int(params[2])
+			max_seg = int(params[3])
+		except:
+			print("Not enough arguments given! [nbits, nof_cases, min_seg, max_seg]")
+			return
+		cases = TFT.gen_segmented_vector_cases(nbits, nof_cases, min_seg, max_seg)
+
+
+	if (loss_function == "sparse_softmax_cross_entropy"):
+		bit_cases = []
+		for case in cases:
+			if (function_name == "gen_all_parity_cases"):
+				if (len(case[1]) == 1):
+					bit_cases.append([case[0], case[1]])
+				else:
+					bit_cases.append([case[0], case[1][1]])
+			else:
+				for i, b in enumerate(case[1]):
+					print(case[1])
+					if (b):
+						bit_cases.append([case[0], i])
+						break
+		cases = bit_cases
+	print(cases[0:])
+	return cases
+
+
+
 
 net = NNmodule()

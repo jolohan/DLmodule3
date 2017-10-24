@@ -10,7 +10,7 @@ import random as rand
 
 class Gann():
 
-    def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,activation="softmax", loss_func="mse", hidden_activation="relu"):
+    def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,activation="softmax", loss_func="mse", hidden_activation="relu", init_weights=[-.1, .1]):
         print("initiate config variables")
         self.learning_rate = lrate
         self.layer_sizes = dims # Sizes of each layer of neurons
@@ -26,6 +26,7 @@ class Gann():
         self.loss_func = loss_func
         self.modules = []
         self.hidden_activation = hidden_activation
+        self.init_weights = init_weights
         self.build()
 
     # Probed variables are to be displayed in the Tensorboard.
@@ -51,24 +52,26 @@ class Gann():
         # Build all of the modules
         for i,outsize in enumerate(self.layer_sizes[1:]):
             if (i < len(self.layer_sizes) - 2):
-                gmod = Gannmodule(self,i,invar,insize,outsize,self.hidden_activation)
+                gmod = Gannmodule(self,i,invar,insize,outsize,self.hidden_activation, self.init_weights)
                 invar = gmod.output; insize = gmod.outsize
             else:
-                gmod = Gannmodule(self,i,invar,insize,outsize,"linear")
+                gmod = Gannmodule(self,i,invar,insize,outsize,"linear", self.init_weights)
                 invar = gmod.output; insize = gmod.outsize
         self.output = gmod.output # Output of last module is output of whole network
         if (self.activation == "softmax"):
             self.output = tf.nn.softmax(self.output)
         elif (self.activation == "log_softmax"):
-            self.output = self.output
+            self.output = tf.nn.log_softmax(self.output)
         elif (self.activation == "sigmoid"):
             self.output = tf.nn.sigmoid(self.output)
-        elif (self.activation == "log_sigmoid"):
-            self.output = self.output
         elif (self.activation == "linear"):
             self.output = self.output
 
-        self.target = tf.placeholder(tf.float64,shape=(None,gmod.outsize),name='Target')
+        # Sparse softmax cross entropy loss only accepts 1D vectors:
+        if (self.loss_func == "sparse_softmax_cross_entropy"):
+            self.target = tf.placeholder(tf.int64,shape=(None),name='Target')
+        else:
+            self.target = tf.placeholder(tf.float64,shape=(None,gmod.outsize),name='Target')
         self.configure_learning()
 
     # The optimizer knows to gather up all "trainable" variables in the function graph and compute
@@ -78,8 +81,12 @@ class Gann():
     def configure_learning(self):
         if (self.loss_func == "mse"):
             self.error = tf.reduce_mean(tf.square(self.target - self.output),name='MSE')
+        elif (self.loss_func == "L2Loss"):
+            self.error = tf.nn.l2_loss(self.output, name="L2Loss")
         elif (self.loss_func == "softmax_cross_entropy"):
             self.error = tf.nn.softmax_cross_entropy_with_logits(labels=self.target, logits=self.output, name='SoftmaxCrossEntropy')
+        elif (self.loss_func == "sparse_softmax_cross_entropy"):
+            self.error = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.target, logits=self.output, name='SparseSoftmaxCrossEntropy')
         elif (self.loss_func == "sigmoid_cross_entropy"):
             self.error = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.target, logits=self.output, name='SigmoidCrossEntropy')
         print("ERROR: ", self.error)
@@ -118,9 +125,13 @@ class Gann():
     def do_testing(self, sess, cases, msg='Testing', bestk=None, epoch=0):
         inputs = [c[0] for c in cases]; targets = [c[1] for c in cases]
         feeder = {self.input: inputs, self.target: targets}
+        #print(self.error)
         self.test_func = self.error
         if bestk is not None:
-            self.test_func = self.gen_match_counter(self.predictor,[TFT.one_hot_to_int(list(v)) for v in targets],k=bestk)
+            if (self.loss_func == "sparse_softmax_cross_entropy"):
+                self.test_func = self.gen_match_counter(self.predictor, [v for v in targets],k=bestk)
+            else:
+                self.test_func = self.gen_match_counter(self.predictor,[TFT.one_hot_to_int(list(v)) for v in targets],k=bestk)
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                            feed_dict=feeder,  show_interval=None)
         if bestk is None:
@@ -248,7 +259,7 @@ class Gann():
 # A general ann module = a layer of neurons (the output) plus its incoming weights and biases.
 class Gannmodule():
 
-    def __init__(self,ann,index,invariable,insize,outsize,activation):
+    def __init__(self,ann,index,invariable,insize,outsize,activation,weights):
         self.ann = ann
         self.insize=insize  # Number of neurons feeding into this module
         self.outsize=outsize # Number of neurons in this module
@@ -256,11 +267,12 @@ class Gannmodule():
         self.index = index
         self.name = "Module-"+str(self.index)
         self.activation = activation
+        self.weights = weights
         self.build()
 
     def build(self):
         mona = self.name; n = self.outsize
-        self.weights = tf.Variable(np.random.uniform(-.1, .1, size=(self.insize,n)),
+        self.weights = tf.Variable(np.random.uniform(self.weights[0], self.weights[1], size=(self.insize,n)),
                                    name=mona+'-wgt',trainable=True) # True = default for trainable anyway
         self.biases = tf.Variable(np.random.uniform(-.1, .1, size=n),
                                   name=mona+'-bias', trainable=True)  # First bias vector

@@ -1,0 +1,13 @@
+Sparse konvergerer raskere, men overfitter fort. (små vs store one-hot?)
+
+Batch_size = 1
+sparse (70): 60 %, 89 %
+non-sparse (70): 74 %, 99 %
+
+Batch_size = 8:
+sparse (90): 68 %, 99.75 %
+non-sparse (90): 84 %, 100 %
+
+Batch_size = 16:
+sparse (90): 62 %, 100 %
+non-sparse (90): 78 %, 100 %
