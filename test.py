@@ -38,7 +38,13 @@ class NNmodule():
 		self.ann.gen_probe(0,'wgt',('hist','avg'))  # Plot a histogram and avg of the incoming weights to module 0.
 		if (len(self.sizes) > 2):
 			self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
+		a = input("add grabvar start")
 		self.ann.add_grabvar(0,'wgt') # Add a grabvar (to be displayed in its own matplotlib window).
+		if (self.map_batch_size > 0):
+			for layer in self.map_layers:
+				layer_string = 'layer' + str(layer)
+				self.ann.add_grabvar(layer)
+		a = input("add grabvar stop")
 		self.ann.run(self.epochs, bestk=True)
 		done = False
 		while not done:
@@ -51,7 +57,10 @@ class NNmodule():
 					done = True
 			except:
 				done = True
-				print("Shutting down...")
+		if (self.map_batch_size > 0):
+			sess = self.ann.reopen_current_session()
+			cases = self.ann.caseman.get_testing_cases()[0:self.map_batch_size]
+			self.ann.do_mapping(sess, cases=cases, bestk=True)
 		print("Shutting down...")
 
 	def load_config(self):
@@ -130,7 +139,6 @@ class NNmodule():
 		if (self.map_batch_size > 0):
 			self.map_layers = [int(layer) for layer in network_dict['MapLayers']]
 
-			
 		# 15. Map Dendograms (List of layers whose activation patterns will be used to produce Dendograms (Map Test))
 		if (self.map_batch_size > 0):
 			self.map_dendos = [int(layer) for layer in network_dict['MapDendo']]

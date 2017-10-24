@@ -167,6 +167,8 @@ class Gann():
             # print('%s Set Error = %f ' % (msg, testres))
         else:
             print('%s Set Correct Classifications = %f %%' % (msg, 100 * (testres / len(cases))))
+
+        self.display_grabvars(grabbed_vals=grabvals, grabbed_vars=self.grabvars)
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
 
     def gen_match_counter(self, logits, labels, k=1):
@@ -341,6 +343,7 @@ class Caseman():
         self.validation_fraction = vfrac
         self.test_fraction = tfrac
         self.case_fraction = cfrac
+        print("casefraction = "+str(self.case_fraction))
         self.training_fraction = 1 - (vfrac + tfrac)
         self.generate_cases()
         self.organize_cases()
@@ -383,9 +386,9 @@ def autoex(epochs=300,nbits=4,lrate=0.03,showint=100,mbs=None,vfrac=0.1,tfrac=0.
     ann.runmore(epochs, bestk=True)
     return ann
 
-def countex(epochs=5000,nbits=10,ncases=500,lrate=0.5,showint=500,mbs=20,vfrac=0.1,tfrac=0.1,vint=200,sm=True,bestk=1):
+def countex(epochs=5000,nbits=10,ncases=500,lrate=0.5,showint=500,mbs=20,vfrac=0.1,tfrac=0.1,cfrac=1.0,vint=200,sm=True,bestk=1):
     case_generator = (lambda: TFT.gen_vector_count_cases(ncases,nbits))
-    cman = Caseman(cfunc=case_generator, vfrac=vfrac, tfrac=tfrac)
+    cman = Caseman(cfunc=case_generator, vfrac=vfrac, tfrac=tfrac, cfrac=cfrac)
     ann = Gann(dims=[nbits, nbits*3, nbits+1], cman=cman, lrate=lrate, showint=showint, mbs=mbs, vint=vint, softmax=sm)
     ann.run(epochs,bestk=bestk)
     return ann
