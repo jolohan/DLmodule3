@@ -153,6 +153,22 @@ class Gann():
     # problems when ALL outputs are the same value, such as 0, since in_top_k would then signal a match for any
     # target.  Unfortunately, top_k requires a different set of arguments...and is harder to use.
 
+    def do_mapping(self, sess, cases, msg='Mapping', bestk=None):
+        inputs = [c[0] for c in cases]
+        targets = [c[1] for c in cases]
+        feeder = {self.input: inputs, self.target: targets}
+        self.test_func = self.predictor
+        if bestk is not None:
+            self.test_func = self.gen_match_counter(self.predictor,[TFT.one_hot_to_int(list(v)) for v in targets],k=bestk)
+        testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
+                                                 feed_dict=feeder, show_interval=None)
+        if bestk is None:
+            print("Error: ", testres)
+            # print('%s Set Error = %f ' % (msg, testres))
+        else:
+            print('%s Set Correct Classifications = %f %%' % (msg, 100 * (testres / len(cases))))
+        return testres  # self.error uses MSE, so this is a per-case value when bestk=None
+
     def gen_match_counter(self, logits, labels, k=1):
         correct = tf.nn.in_top_k(tf.cast(logits,tf.float32), labels, k) # Return number of correct outputs
         return tf.reduce_sum(tf.cast(correct, tf.int32))

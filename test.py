@@ -129,6 +129,7 @@ class NNmodule():
 		# 14. Map Layers (The layers to be visualized during the map test)
 		if (self.map_batch_size > 0):
 			self.map_layers = [int(layer) for layer in network_dict['MapLayers']]
+
 			
 		# 15. Map Dendograms (List of layers whose activation patterns will be used to produce Dendograms (Map Test))
 		if (self.map_batch_size > 0):
