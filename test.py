@@ -34,14 +34,19 @@ class NNmodule():
 		# Run the network:
 		self.run()
 
+	def add_weights_and_biases_to_display(self):
+		if (len(self.display_weights) > 0):
+			for layer in self.display_weights:
+				self.ann.add_grabvar(layer, 'wgt')
+		if (len(self.display_biases) > 0):
+			for layer in self.display_biases:
+				self.ann.add_grabvar(layer, 'bias')
 
 	def run(self):
 		self.ann.gen_probe(0,'wgt',('hist','avg'))  # Plot a histogram and avg of the incoming weights to module 0.
 		if (len(self.sizes) > 2):
 			self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
-		#if (self.map_batch_size > 0):
-		#	for layer in self.map_layers:
-		#		self.ann.add_grabvar(layer, 'wgt')
+		self.add_weights_and_biases_to_display()
 		self.ann.run(self.epochs, bestk=True)
 		done = False
 		while not done:
@@ -61,9 +66,9 @@ class NNmodule():
 				self.ann.add_grabvar(0, 'in')
 			for layer in self.map_layers:
 				self.ann.add_grabvar(layer, 'out')
-		print("Grabbed vars: ")
-		for var in self.ann.grabvars:
-			print(var)
+		#print("Grabbed vars: ")
+		#for var in self.ann.grabvars:
+		#	print(var)
 		if (self.map_batch_size > 0):
 			sess = self.ann.reopen_current_session()
 			cases = self.ann.caseman.get_testing_cases()[0:self.map_batch_size]
@@ -326,16 +331,13 @@ if __name__ == '__main__':
 			print(str(key) + ": ", config_dictionary[key])
 
 		config = input("\nWhich config to run [0/" + str(len(config_dictionary)-1) + "]: ")
+		config_nr = int(config)
 
-		try:
-			config_nr = int(config)
-			if (config_nr == 8):
-				finished = True
-				break
+		if (config_nr == 8):
+			finished = True
+			break
 
-			net = NNmodule("Config/" + config_dictionary[config_nr])
-		except:
-			print("Input needs to be an integer!")
+		net = NNmodule("Config/" + config_dictionary[config_nr])
 
 		done = input("Exit = 0, continue = 1: ")
 
@@ -344,7 +346,7 @@ if __name__ == '__main__':
 			if (not done):
 				finished = True
 				break
-				
+
 		except:
 			print("Continuing...")
 

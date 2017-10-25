@@ -260,8 +260,7 @@ class Gann():
             sess.probe_stream.add_summary(results[2], global_step=step)
         else:
             results = sess.run([operators, grabbed_vars], feed_dict=feed_dict)
-        #if show_interval and (step % show_interval == 0) and step > 0:
-        if (show_interval==1):
+        if show_interval and (step % show_interval == 0) and step > 0:
             self.display_grabvars(results[1], grabbed_vars, step=step)
         return results[0], results[1], sess
 
@@ -363,6 +362,7 @@ class Gannmodule():
 
         self.ann.add_module(self)
 
+    #julegodt
     def getvar(self,type):  # type = (in,out,wgt,bias)
         return {'in': self.input, 'out': self.output, 'wgt': self.weights, 'bias': self.biases}[type]
 

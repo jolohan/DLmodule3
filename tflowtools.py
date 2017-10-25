@@ -310,15 +310,16 @@ def simple_plot(yvals,xvals=None,xtitle='X',ytitle='Y',title='Y = F(X)'):
 
 # Each history is a list of pairs (timestamp, value).
 def plot_training_history(error_hist,validation_hist=[],xtitle="Epoch",ytitle="Error",title="History",fig=True):
-    #PLT.ion()
-    if fig: fig = PLT.figure()
+    PLT.ion()
+    if fig:
+        fig = PLT.figure()
     if len(error_hist) > 0:
         simple_plot([p[1] for p in error_hist], [p[0] for p in error_hist],xtitle=xtitle,ytitle=ytitle,title=title)
-        #PLT.hold(True)
+        PLT.hold(True)
     if len(validation_hist) > 0:
         simple_plot([p[1] for p in validation_hist], [p[0] for p in validation_hist])
     fig.savefig("plots/history/error_rate.png")
-    PLT.show()
+    PLT.ioff()
 
 # alpha = transparency
 def simple_scatter_plot(points,alpha=0.5,radius=3):
@@ -362,36 +363,9 @@ def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, 
         axes.add_patch(blob)
     axes.autoscale_view()
     PLT.draw()
-    input("Pause: ")
     hfig.savefig("plots/hinton/hinton_plot.png")
     PLT.pause(0.01)
 
-def alternative_hinton_plot(matrix, fig=None, title='Hinton plot', maxval=None, ax=None):
-    """Draw Hinton diagram for visualizing a weight matrix."""
-    if ax is not None:
-        ax = ax
-    else:
-        ax = PLT.gca()
-    if not maxval:
-        maxval = 2 ** np.ceil(np.log(np.abs(matrix).max()) / np.log(2))
-
-    ax.patch.set_facecolor('gray')
-    ax.set_aspect('equal', 'box')
-    ax.xaxis.set_major_locator(PLT.NullLocator())
-    ax.yaxis.set_major_locator(PLT.NullLocator())
-
-    for (x, y), w in np.ndenumerate(matrix):
-        color = 'white' if w > 0 else 'black'
-        size = np.sqrt(np.abs(w) / maxval)
-        rect = PLT.Rectangle([x - size / 2, y - size / 2], size, size,
-                             facecolor=color, edgecolor=color)
-        ax.add_patch(rect)
-
-    ax.autoscale_view()
-    ax.invert_yaxis()
-    PLT.draw()
-    input("Hinton Pause: ")
-    PLT.pause(0.01)
 
 # This graphically displays a matrix with color codes for positive, negative, small positive and small negative,
 # with the latter 2 defined by the 'cutoff' argument.  The transpose (trans) arg defaults to
