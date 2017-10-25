@@ -15,5 +15,5 @@ MapBatchSize 1
 Epochs 100
 MapLayers 0 1
 MapDendo 0 1 2
-DisplayWeights 1
-DisplayBias 1
+DisplayWeights 1 2
+DisplayBias 1 2

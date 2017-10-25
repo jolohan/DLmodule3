@@ -279,18 +279,24 @@ class Gann():
         #print("\n" + msg, end="\n")
         fig_index = 0
         for i, v in enumerate(grabbed_vals):
+            if (i == 0):
+                continue
             if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
                 fig = self.grabvar_figures[fig_index]
                 if fig == None:
                     print('FIGURE IS NONE')
                 TFT.hinton_plot(v,fig=fig,title=names[i])
                 fig_index += 1
+            elif len(v.shape) == 1:
+                fig = self.grabvar_figures[fig_index]
+                if (fig == None):
+                    print("FIGURE IS NONE")
+                TFT.hinton_plot(np.array([v]), fig=fig, title=names[i])
+                fig_index += 1
 
     def run(self,epochs=100,sess=None,continued=False,bestk=None):
         PLT.ion()
-        print("Running")
         self.training_session(epochs,sess=sess,continued=continued)
-        print("Done training")
         self.test_on_trains(sess=self.current_session,bestk=bestk)
         self.testing_session(sess=self.current_session,bestk=bestk)
         self.close_current_session(view=False)

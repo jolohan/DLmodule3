@@ -3,14 +3,6 @@ import tutor1, tutor2, tutor3
 import tflowtools as TFT
 from numpy import linalg as la
 
-def test():
-	print("Doing a quick test...")
-	mb.quicktest()
-
-#test()
-
-
-
 # Should hold the ANN's created by the config file:
 class NNmodule():
 
@@ -329,8 +321,7 @@ if __name__ == '__main__':
 	5: 'yeast_config.txt',
 	6: 'glass_config.txt',
 	7: 'config.txt',
-	8: 'Exit',
-	9: 'johan.txt'}
+	8: 'Exit'}
 
 	finished = False
 
@@ -346,17 +337,7 @@ if __name__ == '__main__':
 			break
 
 		net = NNmodule("Config/" + config_dictionary[config_nr])
-# =======
-#
-# 		config_nr = int(config)
-# 		if (config_nr == 8):
-# 			finished = True
-# 			break
-#
-# 		net = NNmodule("Config/" + config_dictionary[config_nr])
-#
-# 		#print("Input needs to be an integer!")
-# >>>>>>> master
+
 
 		done = input("Exit = 0, continue = 1: ")
 

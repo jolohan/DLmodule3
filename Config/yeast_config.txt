@@ -1,6 +1,6 @@
 VInt 10
 ShowInt None
-NetSize 8 128 64 32 10
+NetSize 8 512 256 10
 HiddenActivation relu
 OutputActivation linear
 LossFunc sparse_softmax_cross_entropy
@@ -12,7 +12,7 @@ ValFrac 0.1
 TestFrac 0.1
 BatchSize 64
 MapBatchSize 0
-Epochs 10
+Epochs 800
 MapLayers 1 2
 MapDendo 1 2
 DisplayWeights 1 2

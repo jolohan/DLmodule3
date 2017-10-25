@@ -300,7 +300,7 @@ def pp_matrix(m,style='{:.3f}'):
 
 def simple_plot(yvals,xvals=None,xtitle='X',ytitle='Y',title='Y = F(X)'):
     xvals = xvals if xvals is not None else list(range(len(yvals)))
-    PLT.plot(xvals,yvals)
+    PLT.plot(xvals,yvals, label=title)
     PLT.xlabel(xtitle); PLT.ylabel(ytitle); PLT.title(title)
     PLT.draw()
 
@@ -311,11 +311,14 @@ def plot_training_history(error_hist,validation_hist=[],xtitle="Epoch",ytitle="E
     PLT.ion()
     if fig:
         fig = PLT.figure()
+    _, ax = PLT.subplots()
     if len(error_hist) > 0:
-        simple_plot([p[1] for p in error_hist], [p[0] for p in error_hist],xtitle=xtitle,ytitle=ytitle,title="Error_hist")
+        simple_plot([p[1] for p in error_hist], [p[0] for p in error_hist],xtitle=xtitle,ytitle=ytitle,title="Training Loss")
         PLT.hold(True)
     if len(validation_hist) > 0:
-        simple_plot([p[1] for p in validation_hist], [p[0] for p in validation_hist],xtitle=xtitle, ytitle=ytitle, title="Validation_hist")
+        simple_plot([p[1] for p in validation_hist], [p[0] for p in validation_hist],xtitle=xtitle, ytitle=ytitle, title="Validation Loss")
+    ax.legend(loc='upper right')
+    PLT.title("Average Validation/Training Loss")
     PLT.ioff()
 
 # alpha = transparency
