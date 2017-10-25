@@ -37,10 +37,12 @@ class NNmodule():
 	def add_weights_and_biases_to_display(self):
 		if (len(self.display_weights) > 0):
 			for layer in self.display_weights:
-				self.ann.add_grabvar(layer, 'wgt')
+				if (type(layer) == int):
+					self.ann.add_grabvar(layer, 'wgt')
 		if (len(self.display_biases) > 0):
 			for layer in self.display_biases:
-				self.ann.add_grabvar(layer, 'bias')
+				if (type(layer) == int):
+					self.ann.add_grabvar(layer, 'bias')
 
 	def add_map_layers_to_display(self):
 		self.ann.grabvars = []
@@ -50,12 +52,19 @@ class NNmodule():
 				self.ann.add_grabvar(0, 'in')
 			for layer in self.map_layers:
 				self.ann.add_grabvar(layer, 'out')
+			if (self.map_dendos[0] == 0):
+				self.ann.add_grabvar(0, 'in')
+			for layer in self.map_dendos:
+				self.ann.add_grabvar(layer, 'out')
+
+
 
 	def run(self):
 		self.ann.gen_probe(0,'wgt',('hist','avg'))  # Plot a histogram and avg of the incoming weights to module 0.
 		if (len(self.sizes) > 2):
 			self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
 		self.add_weights_and_biases_to_display()
+		self.ann.run(self.epochs, bestk=True)
 		done = False
 		while not done:
 			string = input("Do you want to run more epochs? [0, n]\n: ")
@@ -68,6 +77,7 @@ class NNmodule():
 			except:
 				done = True
 		input("Continue to mapping?")
+		self.add_map_layers_to_display()
 		if (self.map_batch_size > 0):
 			self.ann.reopen_current_session()
 			cases = self.ann.caseman.get_testing_cases()[0:self.map_batch_size]
@@ -167,10 +177,10 @@ class NNmodule():
 			self.map_dendos = [int(layer) for layer in network_dict['MapDendo']]
 
 		# 16. Display Weights (list of the weight arrays to be visualized at the end of the run)
-		self.display_weights = [int(layer) for layer in network_dict['DisplayWeights']]
+		self.display_weights = [int(layer) if len(layer)>0 else [] for layer in network_dict['DisplayWeights']]
 
 		# 17. Display Biases (list of the bias vectors to be visualized at the end of the run)
-		self.display_biases = [int(layer) for layer in network_dict['DisplayBias']]
+		self.display_biases = [int(layer) if len(layer)>0 else [] for layer in network_dict['DisplayBias']]
 
 # For the MNIST dataset:
 def mnist(parameters, loss_function):

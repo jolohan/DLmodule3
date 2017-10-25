@@ -174,13 +174,16 @@ class Gann():
         self.test_func = self.predictor
         if bestk is not None:
             self.test_func = self.gen_match_counter(self.predictor,[TFT.one_hot_to_int(list(v)) for v in targets],k=bestk)
+        """
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                                  feed_dict=feeder, show_interval=1)
-        if bestk is None:
-            print("Error: ", testres)
+        """
+        if self.probes is not None:
+            results = sess.run([self.test_func, self.grabvars, self.probes], feed_dict=feeder)
+            sess.probe_stream.add_summary(results[2], global_step=1)
         else:
-            print('%s Set Correct Classifications = %f %%' % (msg, 100 * (testres / len(cases))))
-        return testres  # self.error uses MSE, so this is a per-case value when bestk=None
+            results = sess.run([self.test_func, self.grabvars], feed_dict=feeder)
+        self.display_grabvars(results[1], self.grabvars, step=1)
 
     def make_dendrogram(self, sess, cases, first, msg='Dendogram', bestk=None):
         inputs = [c[0] for c in cases]
@@ -281,11 +284,12 @@ class Gann():
         #print("\n" + msg, end="\n")
         fig_index = 0
         for i, v in enumerate(grabbed_vals):
+            print(v, names[i])
             if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
                 fig = self.grabvar_figures[fig_index]
                 if fig == None:
                     print('FIGURE IS NONE')
-                TFT.hinton_plot(v,fig=fig,title= names[i]+ ' at step '+ str(step))
+                TFT.hinton_plot(v,fig=fig,title=names[i])
                 fig_index += 1
 
     def run(self,epochs=100,sess=None,continued=False,bestk=None):
@@ -293,7 +297,7 @@ class Gann():
         self.training_session(epochs,sess=sess,continued=continued)
         self.test_on_trains(sess=self.current_session,bestk=bestk)
         self.testing_session(sess=self.current_session,bestk=bestk)
-        self.make_dendrogram(self.current_session, self.caseman.get_testing_cases(), False)
+        #self.make_dendrogram(self.current_session, self.caseman.get_testing_cases(), False)
         self.close_current_session(view=False)
         PLT.ioff()
 

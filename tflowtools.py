@@ -362,7 +362,7 @@ def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, 
         axes.add_patch(blob)
     axes.autoscale_view()
     PLT.draw()
-    #hfig.savefig("plots/hinton/hinton_plot.png")
+    hfig.savefig("plots/hinton/hinton_plot" + title + ".png")
     PLT.pause(0.01)
 
 
