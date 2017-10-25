@@ -11,9 +11,9 @@ CaseFrac 1.0
 ValFrac 0.1
 TestFrac 0.1
 BatchSize 64
-MapBatchSize 0
+MapBatchSize 1
 Epochs 100
-MapLayers 1 2
+MapLayers 0 1
 MapDendo 1 2
-DisplayWeights 1 2 3
-DisplayBias 1 2 3
+DisplayWeights 0 1 2
+DisplayBias 0 1

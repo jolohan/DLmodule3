@@ -300,20 +300,24 @@ def pp_matrix(m,style='{:.3f}'):
 
 def simple_plot(yvals,xvals=None,xtitle='X',ytitle='Y',title='Y = F(X)'):
     xvals = xvals if xvals is not None else list(range(len(yvals)))
+    fig = PLT.figure()
     PLT.plot(xvals,yvals)
     PLT.xlabel(xtitle); PLT.ylabel(ytitle); PLT.title(title)
     PLT.draw()
+    fig.savefig("plots/history/" + title + ".png")
+
+
 
 # Each history is a list of pairs (timestamp, value).
 def plot_training_history(error_hist,validation_hist=[],xtitle="Epoch",ytitle="Error",title="History",fig=True):
     #PLT.ion()
-    if fig: PLT.figure()
+    if fig: fig = PLT.figure()
     if len(error_hist) > 0:
         simple_plot([p[1] for p in error_hist], [p[0] for p in error_hist],xtitle=xtitle,ytitle=ytitle,title=title)
         #PLT.hold(True)
     if len(validation_hist) > 0:
         simple_plot([p[1] for p in validation_hist], [p[0] for p in validation_hist])
-    #PLT.ioff()
+    fig.savefig("plots/history/error_rate.png")
     PLT.show()
 
 # alpha = transparency
@@ -335,8 +339,8 @@ def simple_scatter_plot(points,alpha=0.5,radius=3):
 def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, title='Hinton plot',
                 colors=['gray','red','blue','white']):
     print(title)
-    #hfig = PLT.figure()
-    hfig = fig if fig else PLT.figure()
+    hfig = PLT.figure()
+    #hfig = fig if fig else PLT.figure()
     hfig.suptitle(title,fontsize=18)
     if trans: matrix = matrix.transpose()
     if maxval == None: maxval = np.abs(matrix).max()
@@ -358,8 +362,8 @@ def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, 
         axes.add_patch(blob)
     axes.autoscale_view()
     PLT.draw()
-    input("adfjnj")
-
+    input("Pause: ")
+    hfig.savefig("plots/hinton/" + title + ".png")
     PLT.pause(0.01)
 
 def alternative_hinton_plot(matrix, fig=None, title='Hinton plot', maxval=None, ax=None):
@@ -386,7 +390,7 @@ def alternative_hinton_plot(matrix, fig=None, title='Hinton plot', maxval=None, 
     ax.autoscale_view()
     ax.invert_yaxis()
     PLT.draw()
-    input("adfjnj")
+    input("Hinton Pause: ")
     PLT.pause(0.01)
 
 # This graphically displays a matrix with color codes for positive, negative, small positive and small negative,
@@ -419,6 +423,7 @@ def display_matrix(matrix,fig=None,trans=True,scale=True, title='Matrix',tform='
                   color='black',size=tsize)
     axes.autoscale_view()
     PLT.draw()
+    hfig.savefig("plots/matrix/" + title + ".png")
     PLT.pause(1)
 
 # ****** Principle Component Analysis (PCA) ********
@@ -456,4 +461,5 @@ def dendrogram(features,labels,metric='euclidean',mode='average',ax=None,title='
     PLT.tight_layout()
     ax.set_title(title)
     ax.set_ylabel(metric + ' distance')
+    ax.savefig("plots/dendogram/" + title + ".png")
     PLT.show()
