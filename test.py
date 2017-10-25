@@ -42,6 +42,10 @@ class NNmodule():
 		#if (self.map_batch_size > 0):
 		#	for layer in self.map_layers:
 		#		self.ann.add_grabvar(layer, 'wgt')
+		sess = TFT.gen_initialized_session(dir='probeview')
+		cases = self.case_manager.get_testing_cases()
+		self.ann.roundup_probes()
+		self.ann.make_dendrogram(sess, cases, first=True)
 		self.ann.run(self.epochs, bestk=True)
 		done = False
 		while not done:
@@ -83,8 +87,6 @@ class NNmodule():
 				listed_specs = line.split(" ")
 
 				network_dict[listed_specs[0]] = [item.strip() for item in listed_specs[1:]]
-
-		print("Dictionary: ", network_dict)
 
 		# Parameters for output generation:
 		self.vint = network_dict['VInt'][0]
@@ -327,15 +329,15 @@ if __name__ == '__main__':
 
 		config = input("\nWhich config to run [0/" + str(len(config_dictionary)-1) + "]: ")
 
-		try:
-			config_nr = int(config)
-			if (config_nr == 8):
-				finished = True
-				break
 
-			net = NNmodule("Config/" + config_dictionary[config_nr])
-		except:
-			print("Input needs to be an integer!")
+		config_nr = int(config)
+		if (config_nr == 8):
+			finished = True
+			break
+
+		net = NNmodule("Config/" + config_dictionary[config_nr])
+
+		#print("Input needs to be an integer!")
 
 		done = input("Exit = 0, continue = 1: ")
 

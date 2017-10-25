@@ -3,7 +3,7 @@ ShowInt None
 NetSize 784 1024 512 10
 HiddenActivation relu
 OutputActivation linear
-LossFunc softmax_cross_entropy
+LossFunc sparse_softmax_cross_entropy
 LearningRate 0.01
 InitialWeight -.1 .1
 DataSource load_mnist training

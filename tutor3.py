@@ -23,7 +23,6 @@ class Gann():
         self.minibatch_size = mbs
         self.validation_interval = vint
         self.validation_history = []
-        self.dendrogram_viewer = PLT.gca()
         self.caseman = cman
         self.activation = activation
         self.loss_func = loss_func
@@ -92,7 +91,6 @@ class Gann():
             self.error = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.target, logits=self.output, name='SparseSoftmaxCrossEntropy')
         elif (self.loss_func == "sigmoid_cross_entropy"):
             self.error = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.target, logits=self.output, name='SigmoidCrossEntropy')
-        print("ERROR: ", self.error)
         self.predictor = self.output  # Simple prediction runs will request the value of output neurons
         # Defining the training operator
         optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)
@@ -189,7 +187,7 @@ class Gann():
             print('%s Set Correct Classifications = %f %%' % (msg, 100 * (testres / len(cases))))
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
 
-    def make_dendogram(self, sess, cases, first, msg='Dendogram', bestk=None):
+    def make_dendrogram(self, sess, cases, first, msg='Dendogram', bestk=None):
         inputs = [c[0] for c in cases]
         targets = [c[1] for c in cases]
         target_dict = {}
@@ -201,6 +199,7 @@ class Gann():
             testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                                      feed_dict=feeder, show_interval=1)
             activation = [i for i in testres[0]]
+            #print(activation)
             if (type(targets[c]) == int):
                 out_string = str(targets[c])
             else:
@@ -213,10 +212,11 @@ class Gann():
         for key in target_dict.keys():
             labels.append(key)
             activations.append(target_dict[key])
+        #print(activations[0], labels[0])
         title="Dendrogram_" + self.title
         if first:
             title += "_early"
-        TFT.dendrogram(features=activations, labels=labels, ax=self.dendrogram_viewer, title=title)
+        TFT.dendrogram(features=activations, labels=labels, title=title)
 
     def gen_match_counter(self, logits, labels, k=1):
         correct = tf.nn.in_top_k(tf.cast(logits,tf.float32), labels, k) # Return number of correct outputs
@@ -240,7 +240,6 @@ class Gann():
             cases = self.caseman.get_validation_cases()
             test_cases = self.caseman.get_testing_cases()
             if len(cases) > 0:
-                self.make_dendogram(sess, cases, (epoch==self.validation_interval))
                 error = self.do_testing(sess,cases,msg='Validation Testing',epoch=epoch)
                 self.validation_history.append((epoch,error))
             if (len(test_cases) > 0):
@@ -260,8 +259,8 @@ class Gann():
             sess.probe_stream.add_summary(results[2], global_step=step)
         else:
             results = sess.run([operators, grabbed_vars], feed_dict=feed_dict)
-        #if show_interval and (step % show_interval == 0) and step > 0:
-        if (show_interval==1):
+        if show_interval and (step % show_interval == 0) and step > 0:
+        #if (show_interval==1):
             self.display_grabvars(results[1], grabbed_vars, step=step)
         return results[0], results[1], sess
 
@@ -284,6 +283,7 @@ class Gann():
         self.training_session(epochs,sess=sess,continued=continued)
         self.test_on_trains(sess=self.current_session,bestk=bestk)
         self.testing_session(sess=self.current_session,bestk=bestk)
+        self.make_dendrogram(self.current_session, self.caseman.get_testing_cases(), False)
         self.close_current_session(view=False)
         PLT.ioff()
 
@@ -352,7 +352,6 @@ class Gannmodule():
                                    name=mona+'-wgt',trainable=True) # True = default for trainable anyway
         self.biases = tf.Variable(np.random.uniform(-.1, .1, size=n),
                                   name=mona+'-bias', trainable=True)  # First bias vector
-        print(self.activation)
         if (self.activation == "relu"):
             self.output = tf.nn.relu(tf.matmul(self.input,self.weights)+self.biases,name=mona+'-out')
         elif (self.activation == "sigmoid"):
