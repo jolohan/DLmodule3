@@ -19,6 +19,7 @@ probeview
 mnist_basics.py
 .DS_Store
 Config
+Config/johan.txt
 
 # C extensions
 *.so

@@ -42,6 +42,15 @@ class NNmodule():
 			for layer in self.display_biases:
 				self.ann.add_grabvar(layer, 'bias')
 
+	def add_map_layers_to_display(self):
+		self.ann.grabvars = []
+		self.ann.grabvar_figures = []
+		if (self.map_batch_size > 0):
+			if self.map_layers[0] == 0:
+				self.ann.add_grabvar(0, 'in')
+			for layer in self.map_layers:
+				self.ann.add_grabvar(layer, 'out')
+
 	def run(self):
 		self.ann.gen_probe(0,'wgt',('hist','avg'))  # Plot a histogram and avg of the incoming weights to module 0.
 		if (len(self.sizes) > 2):
@@ -63,16 +72,7 @@ class NNmodule():
 					done = True
 			except:
 				done = True
-		self.ann.grabvars = []
-		self.ann.grabvar_figures = []
-		if (self.map_batch_size > 0):
-			if self.map_layers[0] == 0:
-				self.ann.add_grabvar(0, 'in')
-			for layer in self.map_layers:
-				self.ann.add_grabvar(layer, 'out')
-		#print("Grabbed vars: ")
-		#for var in self.ann.grabvars:
-		#	print(var)
+		input("Continue to mapping?")
 		if (self.map_batch_size > 0):
 			sess = self.ann.reopen_current_session()
 			cases = self.ann.caseman.get_testing_cases()[0:self.map_batch_size]
@@ -324,7 +324,8 @@ if __name__ == '__main__':
 	5: 'yeast_config.txt',
 	6: 'glass_config.txt',
 	7: 'config.txt',
-	8: 'Exit'}
+	8: 'Exit',
+	9: 'johan.txt'}
 
 	finished = False
 

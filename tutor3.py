@@ -12,7 +12,6 @@ import os
 class Gann():
 
     def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,activation="softmax", loss_func="mse", hidden_activation="relu", init_weights=[-.1, .1], title="ANN"):
-        print("initiate config variables")
         self.learning_rate = lrate
         self.title = title
         self.layer_sizes = dims # Sizes of each layer of neurons
@@ -102,7 +101,6 @@ class Gann():
         for i in range(epochs):
             error = 0
             step = self.global_training_step + i
-            #print("Sending this variable, step =", step)
             gvars = [self.error] + self.grabvars
             mbs = self.minibatch_size; ncases = len(cases); nmb = math.ceil(ncases/mbs)
             for cstart in range(0,ncases,mbs):  # Loop through cases, one minibatch at a time.
@@ -147,7 +145,6 @@ class Gann():
         if bestk is None:
             if epoch == 0:
                 epoch = self.global_training_step
-            #print('Epoch: ', epoch)
             if (type(testres) != np.float64 and len(testres) > 1):
                 batch_error = 0
                 for e in testres:
@@ -173,7 +170,6 @@ class Gann():
         print("do mapping")
         inputs = [c[0] for c in cases]
         targets = [c[1] for c in cases]
-        print(targets)
         feeder = {self.input: inputs, self.target: targets}
         self.test_func = self.predictor
         if bestk is not None:
@@ -182,7 +178,6 @@ class Gann():
                                                  feed_dict=feeder, show_interval=1)
         if bestk is None:
             print("Error: ", testres)
-            # print('%s Set Error = %f ' % (msg, testres))
         else:
             print('%s Set Correct Classifications = %f %%' % (msg, 100 * (testres / len(cases))))
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
@@ -273,7 +268,6 @@ class Gann():
                 fig = self.grabvar_figures[fig_index]
                 if fig == None:
                     print('FIGURE IS NONE')
-                print("hint plot fig: "+str(fig_index))
                 TFT.hinton_plot(v,fig=fig,title= names[i]+ ' at step '+ str(step))
                 fig_index += 1
 
