@@ -56,11 +56,6 @@ class NNmodule():
 		if (len(self.sizes) > 2):
 			self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
 		self.add_weights_and_biases_to_display()
-		sess = TFT.gen_initialized_session(dir='probeview')
-		cases = self.case_manager.get_testing_cases()
-		self.ann.roundup_probes()
-		self.ann.make_dendrogram(sess, cases, first=True)
-		self.ann.run(self.epochs, bestk=True)
 		done = False
 		while not done:
 			string = input("Do you want to run more epochs? [0, n]\n: ")
@@ -74,9 +69,9 @@ class NNmodule():
 				done = True
 		input("Continue to mapping?")
 		if (self.map_batch_size > 0):
-			sess = self.ann.reopen_current_session()
+			self.ann.reopen_current_session()
 			cases = self.ann.caseman.get_testing_cases()[0:self.map_batch_size]
-			self.ann.do_mapping(sess, cases=cases)
+			self.ann.do_mapping(self.ann.current_session, cases=cases)
 			#############################
 		print("Shutting down...")
 

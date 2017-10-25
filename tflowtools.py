@@ -436,4 +436,4 @@ def dendrogram(features,labels,metric='euclidean',mode='average',ax=None,title='
     ax.set_title(title)
     ax.set_ylabel(metric + ' distance')
     fig.savefig("plots/dendrogram/" + title + ".png")
-    PLT.show()
+    PLT.draw()
