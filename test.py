@@ -47,6 +47,10 @@ class NNmodule():
 		if (len(self.sizes) > 2):
 			self.ann.gen_probe(1,'out',('avg','max'))  # Plot average and max value of module 1's output vector
 		self.add_weights_and_biases_to_display()
+		sess = TFT.gen_initialized_session(dir='probeview')
+		cases = self.case_manager.get_testing_cases()
+		self.ann.roundup_probes()
+		self.ann.make_dendrogram(sess, cases, first=True)
 		self.ann.run(self.epochs, bestk=True)
 		done = False
 		while not done:
@@ -88,8 +92,6 @@ class NNmodule():
 				listed_specs = line.split(" ")
 
 				network_dict[listed_specs[0]] = [item.strip() for item in listed_specs[1:]]
-
-		print("Dictionary: ", network_dict)
 
 		# Parameters for output generation:
 		self.vint = network_dict['VInt'][0]
@@ -338,6 +340,17 @@ if __name__ == '__main__':
 			break
 
 		net = NNmodule("Config/" + config_dictionary[config_nr])
+# =======
+#
+# 		config_nr = int(config)
+# 		if (config_nr == 8):
+# 			finished = True
+# 			break
+#
+# 		net = NNmodule("Config/" + config_dictionary[config_nr])
+#
+# 		#print("Input needs to be an integer!")
+# >>>>>>> master
 
 		done = input("Exit = 0, continue = 1: ")
 
