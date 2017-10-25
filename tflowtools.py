@@ -335,7 +335,7 @@ def simple_scatter_plot(points,alpha=0.5,radius=3):
 def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, title='Hinton plot',
                 colors=['gray','red','blue','white']):
     print(title)
-    #hfig = fig
+    #hfig = PLT.figure()
     hfig = fig if fig else PLT.figure()
     hfig.suptitle(title,fontsize=18)
     if trans: matrix = matrix.transpose()
