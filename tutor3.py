@@ -154,21 +154,21 @@ class Gann():
     # target.  Unfortunately, top_k requires a different set of arguments...and is harder to use.
 
     def do_mapping(self, sess, cases, msg='Mapping', bestk=None):
+        print("do mapping")
         inputs = [c[0] for c in cases]
         targets = [c[1] for c in cases]
+        print(targets)
         feeder = {self.input: inputs, self.target: targets}
         self.test_func = self.predictor
         if bestk is not None:
             self.test_func = self.gen_match_counter(self.predictor,[TFT.one_hot_to_int(list(v)) for v in targets],k=bestk)
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
-                                                 feed_dict=feeder, show_interval=None)
+                                                 feed_dict=feeder, show_interval=1)
         if bestk is None:
             print("Error: ", testres)
             # print('%s Set Error = %f ' % (msg, testres))
         else:
             print('%s Set Correct Classifications = %f %%' % (msg, 100 * (testres / len(cases))))
-
-        self.display_grabvars(grabbed_vals=grabvals, grabbed_vars=self.grabvars)
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
 
     def gen_match_counter(self, logits, labels, k=1):
@@ -202,14 +202,14 @@ class Gann():
     # Similar to the "quickrun" functions used earlier.
 
     def run_one_step(self, operators, grabbed_vars=None, probed_vars=None, dir='probeview',
-                  session=None, feed_dict=None, step=1, show_interval=1):
+                  session=None, feed_dict=None, step=1, show_interval=0):
         sess = session if session else TFT.gen_initialized_session(dir=dir)
         if probed_vars is not None:
             results = sess.run([operators, grabbed_vars, probed_vars], feed_dict=feed_dict)
             sess.probe_stream.add_summary(results[2], global_step=step)
         else:
             results = sess.run([operators, grabbed_vars], feed_dict=feed_dict)
-        if show_interval and (step % show_interval == 0):
+        if (show_interval==1):
             self.display_grabvars(results[1], grabbed_vars, step=step)
         return results[0], results[1], sess
 
@@ -219,9 +219,14 @@ class Gann():
         print("\n" + msg, end="\n")
         fig_index = 0
         for i, v in enumerate(grabbed_vals):
-            if names: print("   " + names[i] + " = ", end="\n")
+            if names:
+                print("   " + names[i] + " = ", end="\n")
             if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
-                TFT.hinton_plot(v,fig=self.grabvar_figures[fig_index],title= names[i]+ ' at step '+ str(step))
+                fig = self.grabvar_figures[fig_index]
+                if fig == None:
+                    print('FIGURE IS NONE')
+                print("hint plot fig: "+str(fig_index))
+                TFT.hinton_plot(v,fig=fig,title= names[i]+ ' at step '+ str(step))
                 fig_index += 1
             else:
                 print(v, end="\n\n")

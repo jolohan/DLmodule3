@@ -306,14 +306,15 @@ def simple_plot(yvals,xvals=None,xtitle='X',ytitle='Y',title='Y = F(X)'):
 
 # Each history is a list of pairs (timestamp, value).
 def plot_training_history(error_hist,validation_hist=[],xtitle="Epoch",ytitle="Error",title="History",fig=True):
-    PLT.ion()
+    #PLT.ion()
     if fig: PLT.figure()
     if len(error_hist) > 0:
         simple_plot([p[1] for p in error_hist], [p[0] for p in error_hist],xtitle=xtitle,ytitle=ytitle,title=title)
-        PLT.hold(True)
+        #PLT.hold(True)
     if len(validation_hist) > 0:
         simple_plot([p[1] for p in validation_hist], [p[0] for p in validation_hist])
-    PLT.ioff()
+    #PLT.ioff()
+    PLT.show()
 
 # alpha = transparency
 def simple_scatter_plot(points,alpha=0.5,radius=3):
@@ -333,6 +334,8 @@ def simple_scatter_plot(points,alpha=0.5,radius=3):
 
 def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, title='Hinton plot',
                 colors=['gray','red','blue','white']):
+    print(title)
+    #hfig = fig
     hfig = fig if fig else PLT.figure()
     hfig.suptitle(title,fontsize=18)
     if trans: matrix = matrix.transpose()
@@ -355,7 +358,36 @@ def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, 
         axes.add_patch(blob)
     axes.autoscale_view()
     PLT.draw()
-    PLT.pause(.001)
+    input("adfjnj")
+
+    PLT.pause(0.01)
+
+def alternative_hinton_plot(matrix, fig=None, title='Hinton plot', maxval=None, ax=None):
+    """Draw Hinton diagram for visualizing a weight matrix."""
+    if ax is not None:
+        ax = ax
+    else:
+        ax = PLT.gca()
+    if not maxval:
+        maxval = 2 ** np.ceil(np.log(np.abs(matrix).max()) / np.log(2))
+
+    ax.patch.set_facecolor('gray')
+    ax.set_aspect('equal', 'box')
+    ax.xaxis.set_major_locator(PLT.NullLocator())
+    ax.yaxis.set_major_locator(PLT.NullLocator())
+
+    for (x, y), w in np.ndenumerate(matrix):
+        color = 'white' if w > 0 else 'black'
+        size = np.sqrt(np.abs(w) / maxval)
+        rect = PLT.Rectangle([x - size / 2, y - size / 2], size, size,
+                             facecolor=color, edgecolor=color)
+        ax.add_patch(rect)
+
+    ax.autoscale_view()
+    ax.invert_yaxis()
+    PLT.draw()
+    input("adfjnj")
+    PLT.pause(0.01)
 
 # This graphically displays a matrix with color codes for positive, negative, small positive and small negative,
 # with the latter 2 defined by the 'cutoff' argument.  The transpose (trans) arg defaults to
