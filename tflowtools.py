@@ -340,8 +340,8 @@ def simple_scatter_plot(points,alpha=0.5,radius=3):
 def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, title='Hinton plot',
                 colors=['gray','red','blue','white']):
     print(title)
-    hfig = PLT.figure()
-    #hfig = fig if fig else PLT.figure()
+    #hfig = PLT.figure()
+    hfig = fig if fig else PLT.figure()
     hfig.suptitle(title,fontsize=18)
     if trans: matrix = matrix.transpose()
     if maxval == None: maxval = np.abs(matrix).max()
@@ -363,7 +363,7 @@ def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, 
         axes.add_patch(blob)
     axes.autoscale_view()
     PLT.draw()
-    hfig.savefig("plots/hinton/hinton_plot.png")
+    #hfig.savefig("plots/hinton/hinton_plot.png")
     PLT.pause(0.01)
 
 
