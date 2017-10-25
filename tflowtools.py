@@ -300,11 +300,9 @@ def pp_matrix(m,style='{:.3f}'):
 
 def simple_plot(yvals,xvals=None,xtitle='X',ytitle='Y',title='Y = F(X)'):
     xvals = xvals if xvals is not None else list(range(len(yvals)))
-    fig = PLT.figure()
     PLT.plot(xvals,yvals)
     PLT.xlabel(xtitle); PLT.ylabel(ytitle); PLT.title(title)
     PLT.draw()
-    fig.savefig("plots/history/error_rate.png")
 
 
 
@@ -314,11 +312,10 @@ def plot_training_history(error_hist,validation_hist=[],xtitle="Epoch",ytitle="E
     if fig:
         fig = PLT.figure()
     if len(error_hist) > 0:
-        simple_plot([p[1] for p in error_hist], [p[0] for p in error_hist],xtitle=xtitle,ytitle=ytitle,title=title)
+        simple_plot([p[1] for p in error_hist], [p[0] for p in error_hist],xtitle=xtitle,ytitle=ytitle,title="Error_hist")
         PLT.hold(True)
     if len(validation_hist) > 0:
-        simple_plot([p[1] for p in validation_hist], [p[0] for p in validation_hist])
-    fig.savefig("plots/history/error_rate.png")
+        simple_plot([p[1] for p in validation_hist], [p[0] for p in validation_hist],xtitle=xtitle, ytitle=ytitle, title="Validation_hist")
     PLT.ioff()
 
 # alpha = transparency
@@ -362,7 +359,7 @@ def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, 
         axes.add_patch(blob)
     axes.autoscale_view()
     PLT.draw()
-    hfig.savefig("plots/hinton/hinton_plot" + title + ".png")
+    hfig.savefig("plots/hinton/hinton_plot_" + title + ".png")
     PLT.pause(0.01)
 
 
@@ -435,5 +432,5 @@ def dendrogram(features,labels,metric='euclidean',mode='average',ax=None,title='
     PLT.tight_layout()
     ax.set_title(title)
     ax.set_ylabel(metric + ' distance')
-    fig.savefig("plots/dendrogram/" + title + ".png")
-    PLT.draw()
+    fig.savefig("plots/dendrogram/dendogram_plot_" + title + ".png")
+    PLT.show()

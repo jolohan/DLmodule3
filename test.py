@@ -52,8 +52,6 @@ class NNmodule():
 				self.ann.add_grabvar(0, 'in')
 			for layer in self.map_layers:
 				self.ann.add_grabvar(layer, 'out')
-			if (self.map_dendos[0] == 0):
-				self.ann.add_grabvar(0, 'in')
 			for layer in self.map_dendos:
 				self.ann.add_grabvar(layer, 'out')
 
@@ -67,7 +65,7 @@ class NNmodule():
 		self.ann.run(self.epochs, bestk=True)
 		done = False
 		while not done:
-			string = input("Do you want to run more epochs? [0, n]\n: ")
+			string = input("Do you want to run more epochs? [0, n]: ")
 			try:
 				more_epochs = int(string)
 				if (more_epochs > 0):
@@ -76,12 +74,14 @@ class NNmodule():
 					done = True
 			except:
 				done = True
-		input("Continue to mapping?")
 		self.add_map_layers_to_display()
 		if (self.map_batch_size > 0):
 			self.ann.reopen_current_session()
 			cases = self.ann.caseman.get_testing_cases()[0:self.map_batch_size]
-			self.ann.do_mapping(self.ann.current_session, cases=cases)
+			start = len(self.map_layers)
+			if (self.map_layers[0] == 0):
+				start += 1
+			self.ann.do_mapping(self.ann.current_session, cases=cases, start=start)
 			#############################
 		print("Shutting down...")
 

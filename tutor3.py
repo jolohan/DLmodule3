@@ -126,6 +126,7 @@ class Gann():
         TFT.plot_training_history(self.error_history,self.validation_history,xtitle="Epoch",ytitle="Error",
                                   title="",fig=not(continued))
 
+
     # bestk = 1 when you're doing a classification task and the targets are one-hot vectors.  This will invoke the
     # gen_match_counter error function. Otherwise, when
     # bestk=None, the standard MSE error function is used for testing.
@@ -166,72 +167,61 @@ class Gann():
     # problems when ALL outputs are the same value, such as 0, since in_top_k would then signal a match for any
     # target.  Unfortunately, top_k requires a different set of arguments...and is harder to use.
 
-    def do_mapping(self, sess, cases, msg='Mapping', bestk=None):
-        print("do mapping")
+    def do_mapping(self, sess, cases, start=0, msg='Mapping', bestk=None):
         inputs = [c[0] for c in cases]
         targets = [c[1] for c in cases]
         feeder = {self.input: inputs, self.target: targets}
         self.test_func = self.predictor
         if bestk is not None:
             self.test_func = self.gen_match_counter(self.predictor,[TFT.one_hot_to_int(list(v)) for v in targets],k=bestk)
-        """
-        testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
-                                                 feed_dict=feeder, show_interval=1)
-        """
-        if self.probes is not None:
-            results = sess.run([self.test_func, self.grabvars, self.probes], feed_dict=feeder)
-            sess.probe_stream.add_summary(results[2], global_step=1)
-        else:
-            results = sess.run([self.test_func, self.grabvars], feed_dict=feeder)
-        self.display_grabvars(results[1], self.grabvars, step=1)
 
-    def make_dendrogram(self, sess, cases, first, msg='Dendogram', bestk=None):
-        inputs = [c[0] for c in cases]
-        targets = [c[1] for c in cases]
-        target_dict = {}
-        for c in range(len(inputs)):
-            feeder = {self.input: [inputs[c]], self.target: [targets[c]]}
-            self.test_func = self.predictor
-            if bestk is not None:
-                self.test_func = self.gen_match_counter(self.predictor,targets[c],k=bestk)
-            testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
-                                                     feed_dict=feeder, show_interval=1)
-        """
-            print(testres, grabvals)
-            activation = [i for i in testres[0]]
-            #print(activation)
-            if (type(targets[c]) == int):
-                out_string = str(targets[c])
-            else:
-                out_string = TFT.bits_to_str(targets[c])
-            if (not out_string in target_dict):
-                target_dict[out_string] = activation
+        results_hinton = sess.run([self.test_func, self.grabvars[0:start]], feed_dict=feeder)
+        dendro_cases = self.caseman.get_training_cases()
+        dendro_inputs = [c[0] for c in dendro_cases]
+        dendro_targets = [c[1] for c in dendro_cases]
+        dendro_feeder = {self.input: dendro_inputs, self.target: dendro_targets}
+        results_dendro = sess.run([self.test_func, self.grabvars[start:]], feed_dict=dendro_feeder)
+        
+        #print(dendro_dict)
+        self.display_grabvars(results_hinton[1], self.grabvars[0:start], step=1)
+        #print(results_dendro)
+        total_labels = []
+        total_targets = []
+        for j in range(1, len(results_dendro)):
+            dendro_dict = {}
+            for i in range(len(results_dendro[j])):
+                for k in range(len(results_dendro[j][i])):
+                    inp = dendro_targets[k]
+                    res = results_dendro[j][i][k]
+                    if (type(inp) == int):
+                        string = str(inp)
+                    else:
+                        string = TFT.bits_to_str(inp)
+                    if (string not in dendro_dict):
+                        dendro_dict[string] = [i for i in res]
+                dendro_labels = []
+                dendro_data = []
+                for key in dendro_dict.keys():
+                    dendro_labels.append(key)
+                    dendro_data.append(dendro_dict[key])
+                #print("Labels: ", dendro_labels)
+                #print("Targets: ", dendro_targets)
+                total_labels.append(dendro_labels)
+                total_targets.append(dendro_data)
+        self.display_dendrograms(total_targets, self.grabvars[start:], total_labels, start)
 
-        activations = []
-        labels = []
-        for key in target_dict.keys():
-            labels.append(key)
-            activations.append(target_dict[key])
-        #print(activations[0], labels[0])
-        title="Dendrogram_" + self.title
-        if first:
-            title += "_early"
-        TFT.dendrogram(features=activations, labels=labels, title=title)
-        """
-
-    def display_dendrograms(self, grabbed_vals, grabbed_vars, labels, title, step=0):
+    def display_dendrograms(self, grabbed_vals, grabbed_vars, labels, start, title="Dendrogram", step=0):
         names = [x.name for x in grabbed_vars];
         msg = "Grabbed Variables at Step " + str(step)
         #print("\n" + msg, end="\n")
-        fig_index = 0
+        fig_index = start
         for i, v in enumerate(grabbed_vals):
-            if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
-                fig = self.grabvar_figures[fig_index]
-                if fig == None:
-                    print('FIGURE IS NONE')
-                print("Dendrogram plot fig: "+str(fig_index))
-                TFT.dendrogram(v, labels, ax=fig,title=title + "_at_" + step)
-                fig_index += 1
+            #print(v, names[i])
+            fig = self.grabvar_figures[fig_index]
+            if fig == None:
+                print('FIGURE IS NONE')
+            TFT.dendrogram(v, labels[i], title=self.title+"_" + names[i])
+            fig_index += 1
 
     def gen_match_counter(self, logits, labels, k=1):
         correct = tf.nn.in_top_k(tf.cast(logits,tf.float32), labels, k) # Return number of correct outputs
@@ -256,7 +246,12 @@ class Gann():
             test_cases = self.caseman.get_testing_cases()
             if len(cases) > 0:
                 error = self.do_testing(sess,cases,msg='Validation Testing',epoch=epoch)
-                self.validation_history.append((epoch,error))
+                if (type(error) != np.float64 and len(error) > 1):
+                    batch_error = 0
+                    for e in error:
+                        batch_error += e
+                    batch_error = float(batch_error/len(error))
+                    self.validation_history.append((epoch,batch_error))
             if (len(test_cases) > 0):
                 error = self.do_testing(sess, test_cases, msg='Testset Testing', epoch=epoch)
 
@@ -284,7 +279,6 @@ class Gann():
         #print("\n" + msg, end="\n")
         fig_index = 0
         for i, v in enumerate(grabbed_vals):
-            print(v, names[i])
             if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
                 fig = self.grabvar_figures[fig_index]
                 if fig == None:
@@ -294,10 +288,11 @@ class Gann():
 
     def run(self,epochs=100,sess=None,continued=False,bestk=None):
         PLT.ion()
+        print("Running")
         self.training_session(epochs,sess=sess,continued=continued)
+        print("Done training")
         self.test_on_trains(sess=self.current_session,bestk=bestk)
         self.testing_session(sess=self.current_session,bestk=bestk)
-        #self.make_dendrogram(self.current_session, self.caseman.get_testing_cases(), False)
         self.close_current_session(view=False)
         PLT.ioff()
 
@@ -307,6 +302,7 @@ class Gann():
 
     def runmore(self,epochs=100,bestk=None):
         self.reopen_current_session()
+        print("Reopened session...")
         self.run(epochs,sess=self.current_session,continued=True,bestk=bestk)
 
     #   ******* Saving GANN Parameters (weights and biases) *******************

@@ -1,5 +1,5 @@
 VInt 5
-ShowInt 100
+ShowInt None
 NetSize 10 512 256 2
 HiddenActivation relu
 OutputActivation linear
@@ -15,5 +15,5 @@ MapBatchSize 0
 Epochs 200
 MapLayers 1 2
 MapDendo 1 2
-DisplayWeights 1 2 3
-DisplayBias 1 2 3
+DisplayWeights 1 2
+DisplayBias 1 2
