@@ -304,7 +304,7 @@ def simple_plot(yvals,xvals=None,xtitle='X',ytitle='Y',title='Y = F(X)'):
     PLT.plot(xvals,yvals)
     PLT.xlabel(xtitle); PLT.ylabel(ytitle); PLT.title(title)
     PLT.draw()
-    fig.savefig("plots/history/" + title + ".png")
+    fig.savefig("plots/history/error_rate.png")
 
 
 
@@ -363,7 +363,7 @@ def hinton_plot(matrix, maxval=None, maxsize=1, fig=None,trans=True,scale=True, 
     axes.autoscale_view()
     PLT.draw()
     input("Pause: ")
-    hfig.savefig("plots/hinton/" + title + ".png")
+    hfig.savefig("plots/hinton/hinton_plot.png")
     PLT.pause(0.01)
 
 def alternative_hinton_plot(matrix, fig=None, title='Hinton plot', maxval=None, ax=None):
@@ -423,7 +423,7 @@ def display_matrix(matrix,fig=None,trans=True,scale=True, title='Matrix',tform='
                   color='black',size=tsize)
     axes.autoscale_view()
     PLT.draw()
-    hfig.savefig("plots/matrix/" + title + ".png")
+    hfig.savefig("plots/matrix/display_matrix.png")
     PLT.pause(1)
 
 # ****** Principle Component Analysis (PCA) ********
@@ -456,10 +456,11 @@ def gen_dim_reduced_data(feature_array,target_size,eigen_values,eigen_vectors):
 # metric = euclidean, cityblock (manhattan), hamming, cosine, correlation ... (see matplotlib distance.pdist for all 23)
 def dendrogram(features,labels,metric='euclidean',mode='average',ax=None,title='Dendrogram',orient='top',lrot=90.0):
     ax = ax if ax else PLT.gca()
+    fig = PLT.figure()
     cluster_history = SCH.linkage(features,method=mode,metric=metric)
     SCH.dendrogram(cluster_history,labels=labels,orientation=orient,leaf_rotation=lrot)
     PLT.tight_layout()
     ax.set_title(title)
     ax.set_ylabel(metric + ' distance')
-    ax.savefig("plots/dendogram/" + title + ".png")
+    fig.savefig("plots/dendrogram/" + title + ".png")
     PLT.show()

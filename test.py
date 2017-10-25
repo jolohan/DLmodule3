@@ -29,7 +29,7 @@ class NNmodule():
 
 		# Artificial Neural Network:
 		self.ann = tutor3.Gann(self.sizes, self.case_manager, lrate=self.lr, showint=self.showint, mbs=self.batch_size, vint=self.vint,
-			activation=self.activation, loss_func=self.loss_func, hidden_activation=self.hidden_activation, init_weights=self.weight_range)
+			activation=self.activation, loss_func=self.loss_func, hidden_activation=self.hidden_activation, init_weights=self.weight_range, title=self.filename[7:len(self.filename)-4])
 
 		# Run the network:
 		self.run()

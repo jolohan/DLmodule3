@@ -11,9 +11,10 @@ import os
 
 class Gann():
 
-    def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,activation="softmax", loss_func="mse", hidden_activation="relu", init_weights=[-.1, .1]):
+    def __init__(self, dims, cman,lrate=.1,showint=None,mbs=10,vint=None,activation="softmax", loss_func="mse", hidden_activation="relu", init_weights=[-.1, .1], title="ANN"):
         print("initiate config variables")
         self.learning_rate = lrate
+        self.title = title
         self.layer_sizes = dims # Sizes of each layer of neurons
         self.show_interval = showint # Frequency of showing grabbed variables
         self.global_training_step = 0 # Enables coherent data-storage during extra training runs (see runmore).
@@ -22,6 +23,7 @@ class Gann():
         self.minibatch_size = mbs
         self.validation_interval = vint
         self.validation_history = []
+        self.dendrogram_viewer = PLT.gca()
         self.caseman = cman
         self.activation = activation
         self.loss_func = loss_func
@@ -187,6 +189,35 @@ class Gann():
             print('%s Set Correct Classifications = %f %%' % (msg, 100 * (testres / len(cases))))
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
 
+    def make_dendogram(self, sess, cases, first, msg='Dendogram', bestk=None):
+        inputs = [c[0] for c in cases]
+        targets = [c[1] for c in cases]
+        target_dict = {}
+        for c in range(len(inputs)):
+            feeder = {self.input: [inputs[c]], self.target: [targets[c]]}
+            self.test_func = self.predictor
+            if bestk is not None:
+                self.test_func = self.gen_match_counter(self.predictor,targets[c],k=bestk)
+            testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
+                                                     feed_dict=feeder, show_interval=1)
+            activation = [i for i in testres[0]]
+            if (type(targets[c]) == int):
+                out_string = str(targets[c])
+            else:
+                out_string = TFT.bits_to_str(targets[c])
+            if (not out_string in target_dict):
+                target_dict[out_string] = activation
+
+        activations = []
+        labels = []
+        for key in target_dict.keys():
+            labels.append(key)
+            activations.append(target_dict[key])
+        title="Dendrogram_" + self.title
+        if first:
+            title += "_early"
+        TFT.dendrogram(features=activations, labels=labels, ax=self.dendrogram_viewer, title=title)
+
     def gen_match_counter(self, logits, labels, k=1):
         correct = tf.nn.in_top_k(tf.cast(logits,tf.float32), labels, k) # Return number of correct outputs
         return tf.reduce_sum(tf.cast(correct, tf.int32))
@@ -209,6 +240,7 @@ class Gann():
             cases = self.caseman.get_validation_cases()
             test_cases = self.caseman.get_testing_cases()
             if len(cases) > 0:
+                self.make_dendogram(sess, cases, (epoch==self.validation_interval))
                 error = self.do_testing(sess,cases,msg='Validation Testing',epoch=epoch)
                 self.validation_history.append((epoch,error))
             if (len(test_cases) > 0):
@@ -239,9 +271,6 @@ class Gann():
         #print("\n" + msg, end="\n")
         fig_index = 0
         for i, v in enumerate(grabbed_vals):
-            """
-            if names: print("   " + names[i] + " = ", end="\n")
-            """
             if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
                 fig = self.grabvar_figures[fig_index]
                 if fig == None:
@@ -249,10 +278,6 @@ class Gann():
                 print("hint plot fig: "+str(fig_index))
                 TFT.hinton_plot(v,fig=fig,title= names[i]+ ' at step '+ str(step))
                 fig_index += 1
-            """
-            else:
-                print(v, end="\n\n")
-            """
 
     def run(self,epochs=100,sess=None,continued=False,bestk=None):
         PLT.ion()
