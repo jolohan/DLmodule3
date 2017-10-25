@@ -236,12 +236,11 @@ class Gann():
     def display_grabvars(self, grabbed_vals, grabbed_vars,step=1):
         names = [x.name for x in grabbed_vars];
         msg = "Grabbed Variables at Step " + str(step)
-        #print("\n" + msg, end="\n")
+        print("\n" + msg, end="\n")
         fig_index = 0
         for i, v in enumerate(grabbed_vals):
-            """
-            if names: print("   " + names[i] + " = ", end="\n")
-            """
+            if names:
+                print("   " + names[i] + " = ", end="\n")
             if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
                 fig = self.grabvar_figures[fig_index]
                 if fig == None:
@@ -249,10 +248,8 @@ class Gann():
                 print("hint plot fig: "+str(fig_index))
                 TFT.hinton_plot(v,fig=fig,title= names[i]+ ' at step '+ str(step))
                 fig_index += 1
-            """
             else:
                 print(v, end="\n\n")
-            """
 
     def run(self,epochs=100,sess=None,continued=False,bestk=None):
         PLT.ion()
