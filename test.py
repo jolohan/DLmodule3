@@ -42,11 +42,6 @@ class NNmodule():
 		#if (self.map_batch_size > 0):
 		#	for layer in self.map_layers:
 		#		self.ann.add_grabvar(layer, 'wgt')
-		sess = TFT.gen_initialized_session(dir='probeview')
-		cases = self.case_manager.get_testing_cases()
-		self.ann.roundup_probes()
-		self.ann.make_dendrogram(sess, cases, first=True)
-		self.ann.run(self.epochs, bestk=True)
 		done = False
 		while not done:
 			string = input("Do you want to run more epochs? [0, n]\n: ")
@@ -58,6 +53,8 @@ class NNmodule():
 					done = True
 			except:
 				done = True
+
+		# Displaying dendrograms and maps:
 		self.ann.grabvars = []
 		self.ann.grabvar_figures = []
 		if (self.map_batch_size > 0):
@@ -69,9 +66,9 @@ class NNmodule():
 		for var in self.ann.grabvars:
 			print(var)
 		if (self.map_batch_size > 0):
-			sess = self.ann.reopen_current_session()
+			self.ann.reopen_current_session()
 			cases = self.ann.caseman.get_testing_cases()[0:self.map_batch_size]
-			self.ann.do_mapping(sess, cases=cases)
+			self.ann.do_mapping(self.ann.current_session, cases=cases)
 			#############################
 		print("Shutting down...")
 

@@ -198,6 +198,8 @@ class Gann():
                 self.test_func = self.gen_match_counter(self.predictor,targets[c],k=bestk)
             testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                                      feed_dict=feeder, show_interval=1)
+        """
+            print(testres, grabvals)
             activation = [i for i in testres[0]]
             #print(activation)
             if (type(targets[c]) == int):
@@ -217,6 +219,21 @@ class Gann():
         if first:
             title += "_early"
         TFT.dendrogram(features=activations, labels=labels, title=title)
+        """
+
+    def display_dendrograms(self, grabbed_vals, grabbed_vars, labels, title, step=0):
+        names = [x.name for x in grabbed_vars];
+        msg = "Grabbed Variables at Step " + str(step)
+        #print("\n" + msg, end="\n")
+        fig_index = 0
+        for i, v in enumerate(grabbed_vals):
+            if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
+                fig = self.grabvar_figures[fig_index]
+                if fig == None:
+                    print('FIGURE IS NONE')
+                print("Dendrogram plot fig: "+str(fig_index))
+                TFT.dendrogram(v, labels, ax=fig,title=title + "_at_" + step)
+                fig_index += 1
 
     def gen_match_counter(self, logits, labels, k=1):
         correct = tf.nn.in_top_k(tf.cast(logits,tf.float32), labels, k) # Return number of correct outputs
