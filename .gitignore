@@ -18,6 +18,7 @@ mnist_extra
 probeview
 mnist_basics.py
 .DS_Store
+Config
 
 # C extensions
 *.so
