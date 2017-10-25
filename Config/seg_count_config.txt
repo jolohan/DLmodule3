@@ -1,7 +1,7 @@
 NetSize 25 128 64 9
-HiddenActivation linear
+HiddenActivation sigmoid
 OutputActivation linear
-LossFunc mse
+LossFunc softmax_cross_entropy
 LearningRate 0.01
 InitialWeight -.1 .1
 DataSource gen_segmented_vector_cases 25 1000 0 8

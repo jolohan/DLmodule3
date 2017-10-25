@@ -330,6 +330,7 @@ class Caseman():
         rand.shuffle(self.cases)
         total_cases = int(self.case_fraction*len(self.cases))
         self.cases = self.cases[:total_cases]
+        print("Total cases: ", len(self.cases))
 
     def organize_cases(self):
         ca = np.array(self.cases)

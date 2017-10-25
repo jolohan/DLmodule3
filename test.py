@@ -18,7 +18,8 @@ class NNmodule():
 
 		# Load config file:
 		self.filename = "Config/seg_count_config.txt"
-		self.filename = "Config/yeast_config.txt"
+		#self.filename = "Config/yeast_config.txt"
+		#self.filename = "Config/parity_config.txt"
 		self.load_config()
 
 		# Datahandler (sent to CASEMAN):
@@ -158,12 +159,7 @@ def mnist(parameters, loss_function):
 		images, labels = mb.load_mnist(dataset=("training" if not dataset else "testing"), digits=digits)
 
 	# Creating [input, output] - cases, with normalized, flattened images, and int label vectors as output (sparse need integers, not vectors):
-	if (loss_function == "sparse_softmax_cross_entropy"):
-		cases = [[mb.flatten_image(i)/la.norm(i), int(l[0])] for (i, l) in zip(images, labels)]
-		print(cases[0])
-	# Creating [input, output] - cases, with normalized, flattened images, and one-hot vectors as output:
-	else:
-		cases = [[mb.flatten_image(i)/la.norm(i), TFT.int_to_one_hot(int(l[0]), output_size)] for (i, l) in zip(images, labels)]
+	cases = [[mb.flatten_image(i)/la.norm(i), TFT.int_to_one_hot(int(l[0]), output_size)] for (i, l) in zip(images, labels)]
 	print("Total cases collected: ", len(cases))
 	return cases
 
@@ -226,7 +222,7 @@ def normalize_features(vector):
 def manage_data_loaders(function_name, params, loss_function):
 	one_hot = False
 	if (function_name == "load_mnist"):
-		cases = mnist(params, self.loss_func)
+		cases = mnist(params, loss_function)
 
 	elif (function_name == "dataset_loader"):
 		cases = dataset_loader(params[0], loss_function)
@@ -277,7 +273,6 @@ def manage_data_loaders(function_name, params, loss_function):
 						break
 		cases = bit_cases
 
-	print(cases[0:10])
 	return cases
 
 
