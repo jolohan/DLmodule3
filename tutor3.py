@@ -101,16 +101,26 @@ class Gann():
         for i in range(epochs):
             error = 0
             step = self.global_training_step + i
+            #print("Sending this variable, step =", step)
             gvars = [self.error] + self.grabvars
             mbs = self.minibatch_size; ncases = len(cases); nmb = math.ceil(ncases/mbs)
             for cstart in range(0,ncases,mbs):  # Loop through cases, one minibatch at a time.
+                #print("Training on case: [" + str(cstart) + "/" + str(ncases) + "]")
                 cend = min(ncases,cstart+mbs)
                 minibatch = cases[cstart:cend]
                 inputs = [c[0] for c in minibatch]; targets = [c[1] for c in minibatch]
                 feeder = {self.input: inputs, self.target: targets}
                 _,grabvals,_ = self.run_one_step([self.trainer],gvars,self.probes,session=sess,
                                          feed_dict=feeder,step=step,show_interval=self.show_interval)
-                error += grabvals[0]
+                # Need to account for all errors in a batch:
+                batch_error = 0
+                for e in grabvals[0]:
+                    batch_error += e
+                error += float(batch_error/len(grabvals[0]))
+            if ((self.validation_interval > 0) and step % self.validation_interval == 0):
+                print("\n--- Training ---\n")
+                print("Epoch: ", step)
+                print('%s Set Error = %f ' % ("Training", float(error/nmb)))
             self.error_history.append((step, error/nmb))
             self.consider_validation_testing(step,sess)
         self.global_training_step += epochs
@@ -125,7 +135,7 @@ class Gann():
     def do_testing(self, sess, cases, msg='Testing', bestk=None, epoch=0):
         inputs = [c[0] for c in cases]; targets = [c[1] for c in cases]
         feeder = {self.input: inputs, self.target: targets}
-        #print(self.error)
+        #print("\n--- " + msg + " ---\n")
         self.test_func = self.error
         if bestk is not None:
             if (self.loss_func == "sparse_softmax_cross_entropy"):
@@ -137,9 +147,15 @@ class Gann():
         if bestk is None:
             if epoch == 0:
                 epoch = self.global_training_step
-            print('Epoch: ', epoch)
-            #print("Error: ", testres)
-            #print('%s Set Error = %f ' % (msg, testres))
+            #print('Epoch: ', epoch)
+            if (type(testres) != np.float64 and len(testres) > 1):
+                batch_error = 0
+                for e in testres:
+                    batch_error += e
+                batch_error = float(batch_error/len(testres))
+                print('%s Set Error = %f ' % (msg, batch_error))
+            else:
+                print('%s Set Error = %f ' % (msg, testres))
         else:
             print('%s Set Correct Classifications = %f %%' % (msg, 100*(testres/len(cases))))
         return testres  # self.error uses MSE, so this is a per-case value when bestk=None
@@ -173,9 +189,12 @@ class Gann():
     def consider_validation_testing(self,epoch,sess):
         if self.validation_interval and (epoch % self.validation_interval == 0):
             cases = self.caseman.get_validation_cases()
+            test_cases = self.caseman.get_testing_cases()
             if len(cases) > 0:
                 error = self.do_testing(sess,cases,msg='Validation Testing',epoch=epoch)
                 self.validation_history.append((epoch,error))
+            if (len(test_cases) > 0):
+                error = self.do_testing(sess, test_cases, msg='Testset Testing', epoch=epoch)
 
     # Do testing (i.e. calc error without learning) on the training set.
     def test_on_trains(self,sess,bestk=None):
@@ -191,7 +210,7 @@ class Gann():
             sess.probe_stream.add_summary(results[2], global_step=step)
         else:
             results = sess.run([operators, grabbed_vars], feed_dict=feed_dict)
-        if show_interval and (step % show_interval == 0):
+        if show_interval and (step % show_interval == 0) and step > 0:
             self.display_grabvars(results[1], grabbed_vars, step=step)
         return results[0], results[1], sess
 
@@ -278,13 +297,10 @@ class Gannmodule():
                                   name=mona+'-bias', trainable=True)  # First bias vector
         print(self.activation)
         if (self.activation == "relu"):
-            print("RELU Layer")
             self.output = tf.nn.relu(tf.matmul(self.input,self.weights)+self.biases,name=mona+'-out')
         elif (self.activation == "sigmoid"):
-            print("SIGMOID Layer")
             self.output = tf.nn.sigmoid(tf.matmul(self.input,self.weights)+self.biases,name=mona+'-out')
         elif (self.activation == "linear"):
-            print("LINEAR Layer")
             self.output = tf.matmul(self.input,self.weights)+self.biases
 
 

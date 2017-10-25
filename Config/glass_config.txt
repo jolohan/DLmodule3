@@ -1,18 +1,18 @@
-VInt 5
-ShowInt 100
-NetSize 10 512 256 2
-HiddenActivation relu
+VInt 1
+ShowInt None
+NetSize 9 128 64 6
+HiddenActivation sigmoid
 OutputActivation linear
 LossFunc softmax_cross_entropy
-LearningRate 0.001
+LearningRate 0.01
 InitialWeight -.1 .1
-DataSource gen_all_parity_cases 10 1
+DataSource data/glass.txt dataset_loader
 CaseFrac 1.0
 ValFrac 0.1
 TestFrac 0.1
-BatchSize 32
+BatchSize 64
 MapBatchSize 0
-Epochs 200
+Epochs 10
 MapLayers 1 2
 MapDendo 1 2
 DisplayWeights 1 2 3

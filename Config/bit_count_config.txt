@@ -1,3 +1,5 @@
+VInt 10
+ShowInt None
 NetSize 15 128 64 16
 HiddenActivation sigmoid
 OutputActivation linear

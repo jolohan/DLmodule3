@@ -1,16 +1,18 @@
-NetSize 11 128 64 6
-HiddenActivation sigmoid
+VInt 10
+ShowInt None
+NetSize 11 256 128 6
+HiddenActivation relu
 OutputActivation linear
-LossFunc softmax_cross_entropy
+LossFunc sparse_softmax_cross_entropy
 LearningRate 0.01
 InitialWeight -.1 .1
 DataSource data/winequality_red.txt dataset_loader
 CaseFrac 1.0
 ValFrac 0.1
 TestFrac 0.1
-BatchSize 1
+BatchSize 32
 MapBatchSize 0
-Epochs 10
+Epochs 600
 MapLayers 1 2
 MapDendo 1 2
 DisplayWeights 1 2 3

@@ -14,12 +14,11 @@ def test():
 # Should hold then ANN's created by the config file:
 class NNmodule():
 
-	def __init__(self):
+	def __init__(self, config):
 
 		# Load config file:
-		self.filename = "Config/seg_count_config.txt"
-		#self.filename = "Config/yeast_config.txt"
-		#self.filename = "Config/parity_config.txt"
+		print("config: ", config)
+		self.filename = config
 		self.load_config()
 
 		# Datahandler (sent to CASEMAN):
@@ -29,7 +28,7 @@ class NNmodule():
 		self.case_manager = tutor3.Caseman(self.case_generator, self.vfrac, self.tfrac, self.cfrac)
 
 		# Artificial Neural Network:
-		self.ann = tutor3.Gann(self.sizes, self.case_manager, lrate=self.lr, showint=None, mbs=self.batch_size, vint=1,
+		self.ann = tutor3.Gann(self.sizes, self.case_manager, lrate=self.lr, showint=self.showint, mbs=self.batch_size, vint=self.vint,
 			activation=self.activation, loss_func=self.loss_func, hidden_activation=self.hidden_activation, init_weights=self.weight_range)
 
 		# Run the network:
@@ -70,6 +69,19 @@ class NNmodule():
 				network_dict[listed_specs[0]] = [item.strip() for item in listed_specs[1:]]
 
 		print("Dictionary: ", network_dict)
+
+		# Parameters for output generation:
+		self.vint = network_dict['VInt'][0]
+		if (self.vint == "None" or self.vint == "0"):
+			self.vint = None
+		else:
+			self.vint = int(self.vint)
+
+		self.showint = network_dict['ShowInt'][0]
+		if (self.showint == "None" or self.showint == "0"):
+			self.showint = None
+		else:
+			self.showint = int(self.showint)
 
 		# 1. Network Dimensions (+ sizes)
 		sizes = network_dict['NetSize']
@@ -272,10 +284,51 @@ def manage_data_loaders(function_name, params, loss_function):
 						bit_cases.append([case[0], i])
 						break
 		cases = bit_cases
-
 	return cases
 
 
 
+if __name__ == '__main__':
 
-net = NNmodule()
+	print("\n--- ANN Module Interface ---\n")
+
+	config_dictionary = {0: 'parity_config.txt',
+	1: 'bit_count_config.txt',
+	2: 'seg_count_config.txt',
+	3: 'mnist_config.txt',
+	4: 'red_wine_config.txt',
+	5: 'yeast_config.txt',
+	6: 'glass_config.txt',
+	7: 'config.txt',
+	8: 'Exit'}
+
+	finished = False
+
+	while not finished:
+		for key in config_dictionary.keys():
+			print(str(key) + ": ", config_dictionary[key])
+
+		config = input("\nWhich config to run [0/" + str(len(config_dictionary)-1) + "]: ")
+
+		try:
+			config_nr = int(config)
+			if (config_nr == 8):
+				finished = True
+				break
+
+			net = NNmodule("Config/" + config_dictionary[config_nr])
+		except:
+			print("Input needs to be an integer!")
+
+		done = input("Exit = 0, continue = 1: ")
+
+		try:
+			done = int(done)
+			if (not done):
+				finished = True
+				break
+				
+		except:
+			print("Continuing...")
+
+	print("Exiting...")

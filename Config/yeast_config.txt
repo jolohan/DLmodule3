@@ -1,16 +1,18 @@
-NetSize 8 128 64 10
-HiddenActivation sigmoid
+VInt 10
+ShowInt None
+NetSize 8 128 64 32 10
+HiddenActivation relu
 OutputActivation linear
 LossFunc sparse_softmax_cross_entropy
 LearningRate 0.01
 InitialWeight -.1 .1
 DataSource data/yeast.txt dataset_loader
-CaseFrac 0.2
+CaseFrac 1.0
 ValFrac 0.1
 TestFrac 0.1
-BatchSize 1
+BatchSize 64
 MapBatchSize 0
-Epochs 200
+Epochs 400
 MapLayers 1 2
 MapDendo 1 2
 DisplayWeights 1 2 3

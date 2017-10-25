@@ -1,16 +1,18 @@
-NetSize 784 10
-HiddenActivation sigmoid
+VInt 5
+ShowInt None
+NetSize 784 1024 512 10
+HiddenActivation relu
 OutputActivation linear
-LossFunc sparse_softmax_cross_entropy
+LossFunc softmax_cross_entropy
 LearningRate 0.01
 InitialWeight -.1 .1
 DataSource load_mnist training
-CaseFrac 0.2
+CaseFrac 0.1
 ValFrac 0.1
 TestFrac 0.1
 BatchSize 64
 MapBatchSize 0
-Epochs 150
+Epochs 10
 MapLayers 1 2
 MapDendo 1 2
 DisplayWeights 1 2 3
