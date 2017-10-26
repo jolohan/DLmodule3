@@ -1,19 +1,19 @@
 VInt 10
-ShowInt 10
-NetSize 5 16 8 6
-HiddenActivation sigmoid
+ShowInt 20
+NetSize 6 16 7
+HiddenActivation relu
 OutputActivation linear
 LossFunc sparse_softmax_cross_entropy
 LearningRate 0.01
 InitialWeight -.1 .1
-DataSource gen_vector_count_cases 500 5
+DataSource gen_vector_count_cases 100 6
 CaseFrac 1.0
 ValFrac 0.1
 TestFrac 0.1
-BatchSize 64
-MapBatchSize 1
+BatchSize 16
+MapBatchSize 10
 Epochs 100
 MapLayers 0 1
-MapDendo 0 1 2
-DisplayWeights 1 2
-DisplayBias 1 2
+MapDendo 1
+DisplayWeights 1
+DisplayBias 1

@@ -1,6 +1,7 @@
 import mnist_basics as mb
 import tutor1, tutor2, tutor3
 import tflowtools as TFT
+import os
 from numpy import linalg as la
 
 # Should hold the ANN's created by the config file:
@@ -69,7 +70,8 @@ class NNmodule():
 		self.add_map_layers_to_display()
 		if (self.map_batch_size > 0):
 			self.ann.reopen_current_session()
-			cases = self.ann.caseman.get_testing_cases()[0:self.map_batch_size]
+			cases = self.ann.caseman.get_testing_cases()
+			cases = cases[0:min(self.map_batch_size, len(cases))]
 			start = len(self.map_layers)
 			if (self.map_layers[0] == 0):
 				start += 1
@@ -215,13 +217,27 @@ def dataset_loader(filename, loss_function):
 	print(max(labels), min(labels))
 
 	# Making one-hot-labels:
-	one_hot_labels = [TFT.int_to_one_hot(l, max(labels) + 1)[min(labels):] for l in labels]
+	normalized_labels = normalize_labels(labels)
+	one_hot_labels = [TFT.int_to_one_hot(l, max(normalized_labels) + 1) for l in normalized_labels]
 	# Normalizing features in the space [0, 1]:
 	normalized_feature_vectors = normalize_features(feature_vectors)
 
 	# Creating the case-set:
 	cases = [[f, l] for (f, l) in zip(normalized_feature_vectors, one_hot_labels)]
 	return cases
+
+def normalize_labels(vector):
+	min_label = min(vector)
+	max_label = max(vector)
+	uniques = list(set(vector))
+	indexations = {}
+	for i in range(len(uniques)):
+		indexations[uniques[i]] = i
+
+	labels = [indexations[l] for l in vector]
+	return labels
+	
+
 
 def normalize_features(vector):
 	nof_features = len(vector[0])
@@ -313,15 +329,16 @@ if __name__ == '__main__':
 
 	print("\n--- ANN Module Interface ---\n")
 
-	config_dictionary = {0: 'parity_config.txt',
-	1: 'bit_count_config.txt',
-	2: 'seg_count_config.txt',
-	3: 'mnist_config.txt',
-	4: 'red_wine_config.txt',
-	5: 'yeast_config.txt',
-	6: 'glass_config.txt',
-	7: 'config.txt',
-	8: 'Exit'}
+	# Creating dictionary from all config files:
+	path = "Config/"
+	config_dictionary = {}
+	index = 0
+	for subdirs, dirs, files in os.walk(path):
+		for file in files:
+			if ('.txt' in file):
+				config_dictionary[index] = file
+				index += 1
+	config_dictionary[index] = 'Exit'
 
 	finished = False
 
@@ -332,7 +349,7 @@ if __name__ == '__main__':
 		config = input("\nWhich config to run [0/" + str(len(config_dictionary)-1) + "]: ")
 		config_nr = int(config)
 
-		if (config_nr == 8):
+		if (config_nr == index):
 			finished = True
 			break
 

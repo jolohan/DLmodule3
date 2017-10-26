@@ -113,9 +113,12 @@ class Gann():
                                          feed_dict=feeder,step=step,show_interval=self.show_interval)
                 # Need to account for all errors in a batch:
                 batch_error = 0
-                for e in grabvals[0]:
-                    batch_error += e
-                error += float(batch_error/len(grabvals[0]))
+                if (type(grabvals[0]) == np.float64):
+                    error += grabvals[0]
+                else:
+                    for e in grabvals[0]:
+                        batch_error += e
+                    error += float(batch_error/len(grabvals[0]))
             if ((self.validation_interval > 0) and step % self.validation_interval == 0):
                 print("\n--- Training ---\n")
                 print("Epoch: ", step)
@@ -184,7 +187,8 @@ class Gann():
         
         #print(dendro_dict)
         self.display_grabvars(results_hinton[1], self.grabvars[0:start], step=1)
-        #print(results_dendro)
+        for t in targets:
+            print("True Label: ", t)
         total_labels = []
         total_targets = []
         for j in range(1, len(results_dendro)):

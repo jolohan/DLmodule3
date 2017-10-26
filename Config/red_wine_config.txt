@@ -10,9 +10,9 @@ DataSource data/winequality_red.txt dataset_loader
 CaseFrac 1.0
 ValFrac 0.1
 TestFrac 0.1
-BatchSize 64
+BatchSize 16
 MapBatchSize 1
-Epochs 600
+Epochs 300
 MapLayers 1 2
 MapDendo 1 2
 DisplayWeights 1 2
